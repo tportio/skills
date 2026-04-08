@@ -36,4 +36,4 @@ allowed-tools: Bash, Read, Write, Edit, ...
 
 ## 현재 플러그인
 
-- **presentation-pdf**: HTML 슬라이드 프레젠테이션 생성 → Puppeteer 스크린샷 → pdf-lib로 PDF 조합. 런타임 의존성: `puppeteer`, `pdf-lib` (npm).
+- **onda-slides**: ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성. Puppeteer 스크린샷 → pdf-lib로 PDF 조합. 런타임 의존성: `puppeteer`, `pdf-lib` (npm).

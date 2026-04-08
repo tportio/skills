@@ -1,6 +1,6 @@
 ---
-name: presentation-pdf
-description: HTML 슬라이드 프레젠테이션을 생성하고 PDF로 변환한다. 차트, 표, 그리드 레이아웃 지원.
+name: onda-slides
+description: ONDA 공통 템플릿으로 슬라이드 프레젠테이션(HTML + PDF)을 생성한다. 차트, 표, 그리드 레이아웃 지원.
 disable-model-invocation: false
 argument-hint: "<슬라이드 데이터 또는 지시사항>"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion

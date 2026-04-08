@@ -1,42 +1,25 @@
 # tport-skills
 
-tport 공용 Claude Code 스킬 플러그인 마켓플레이스.
+tport 팀이 공유하는 [Claude Code](https://claude.ai/code) 스킬 플러그인 마켓플레이스입니다.
+공통 템플릿과 자동화 도구를 스킬로 만들어, 팀 누구나 동일한 품질의 결과물을 빠르게 만들 수 있습니다.
 
-## 사용법
+## 설치
 
-Claude Code 설정에서 이 저장소를 플러그인 소스로 등록하면, 포함된 스킬들을 `/스킬명` 형태로 사용할 수 있습니다.
+Claude Code에서 아래 두 명령을 순서대로 실행하세요.
+
+```
+/plugin marketplace add tportio/skills
+/plugin install onda-slides@tportio-skills
+```
+
+설치가 완료되면 `/onda-slides` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
 
 ## 플러그인 목록
 
-| 플러그인 | 설명 |
-|----------|------|
-| [presentation-pdf](plugins/presentation-pdf) | HTML 슬라이드 프레젠테이션 생성 및 PDF 변환 |
+| 플러그인 | 설명 | 사용 예시 |
+|----------|------|-----------|
+| [onda-slides](plugins/onda-slides) | ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성 | `/onda-slides 1분기 매출 보고서` |
 
-## 플러그인 추가
+## 새 플러그인 기여
 
-1. `plugins/<name>/` 디렉토리 생성
-2. `plugins/<name>/.claude-plugin/plugin.json` 작성
-3. `plugins/<name>/skills/<skill>/SKILL.md` 작성
-4. `.claude-plugin/marketplace.json`의 `plugins` 배열에 등록
-
-### plugin.json 예시
-
-```json
-{
-  "name": "my-skill",
-  "description": "스킬 설명",
-  "version": "1.0.0"
-}
-```
-
-### SKILL.md frontmatter
-
-```yaml
----
-name: my-skill
-description: 한 줄 설명
-disable-model-invocation: false
-argument-hint: "<사용 예시>"
-allowed-tools: Bash, Read, Write, Edit
----
-```
+플러그인 추가 방법은 [CLAUDE.md](CLAUDE.md)를 참고하세요.

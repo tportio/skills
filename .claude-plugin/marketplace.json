@@ -9,11 +9,11 @@
   },
   "plugins": [
     {
-      "name": "presentation-pdf",
-      "source": "./plugins/presentation-pdf",
-      "description": "HTML 슬라이드 프레젠테이션 생성 및 PDF 변환",
+      "name": "onda-slides",
+      "source": "./plugins/onda-slides",
+      "description": "ONDA 공통 템플릿 기반 슬라이드 프레젠테이션(HTML + PDF) 생성",
       "version": "1.0.0",
-      "keywords": ["presentation", "pdf", "slides", "chart", "puppeteer"]
+      "keywords": ["presentation", "pdf", "slides", "chart", "puppeteer", "onda"]
     }
   ]
 }
