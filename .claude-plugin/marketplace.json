@@ -1,10 +1,10 @@
 {
   "name": "tport-skills",
   "owner": {
-    "name": "tport"
+    "name": "ONDA"
   },
   "metadata": {
-    "description": "tport 공용 Claude Code 스킬",
+    "description": "ONDA 팀 공용 Claude Code 스킬",
     "version": "1.0.0"
   },
   "plugins": [
@@ -14,6 +14,13 @@
       "description": "ONDA 공통 템플릿 기반 슬라이드 프레젠테이션(HTML + PDF) 생성",
       "version": "1.0.0",
       "keywords": ["presentation", "pdf", "slides", "chart", "puppeteer", "onda"]
+    },
+    {
+      "name": "product-docs",
+      "source": "./plugins/product-docs",
+      "description": "ONDA 제품 문서 레포(tportio/product-docs)에 문서 생성/업데이트 및 PR 자동 생성",
+      "version": "1.0.0",
+      "keywords": ["documentation", "product", "pr", "automation", "onda"]
     }
   ]
 }

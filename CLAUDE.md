@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-tport 조직의 공용 Claude Code 스킬 플러그인 마켓플레이스 (`tportio/skills`). Claude Code 플러그인 시스템을 통해 팀 전체가 공유하는 커스텀 스킬을 관리한다.
+ONDA 팀 공용 Claude Code 스킬 플러그인 마켓플레이스 (`tportio/skills`). Claude Code 플러그인 시스템을 통해 팀 전체가 공유하는 커스텀 스킬을 관리한다.
 
 ## 구조
 
@@ -37,3 +37,4 @@ allowed-tools: Bash, Read, Write, Edit, ...
 ## 현재 플러그인
 
 - **onda-slides**: ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성. Puppeteer 스크린샷 → pdf-lib로 PDF 조합. 런타임 의존성: `puppeteer`, `pdf-lib` (npm).
+- **product-docs**: ONDA 제품 문서 레포(`tportio/product-docs`)에 문서 생성/업데이트 및 PR 자동 생성. 아무 tport 서브 레포에서나 실행 가능. 런타임 의존성 없음 (git, `gh` CLI 필요).
