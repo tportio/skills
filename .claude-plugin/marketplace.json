@@ -21,6 +21,13 @@
       "description": "ONDA 제품 문서 레포(tportio/product-docs)에 문서 생성/업데이트 및 PR 자동 생성",
       "version": "1.0.0",
       "keywords": ["documentation", "product", "pr", "automation", "onda"]
+    },
+    {
+      "name": "llm-wiki",
+      "source": "./plugins/llm-wiki",
+      "description": "ONDA LLM Wiki(tport/product-docs/llm-wiki) 검색 — 읽기 전용",
+      "version": "1.0.0",
+      "keywords": ["wiki", "knowledge-base", "search", "llm", "onda"]
     }
   ]
 }

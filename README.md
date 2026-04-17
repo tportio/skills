@@ -11,9 +11,10 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 /plugin marketplace add tportio/skills
 /plugin install onda-slides@tportio-skills
 /plugin install product-docs@tportio-skills
+/plugin install llm-wiki@tportio-skills
 ```
 
-설치가 완료되면 `/onda-slides`, `/product-docs` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
+설치가 완료되면 `/onda-slides`, `/product-docs`, `/llm-wiki` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
 
 ## 플러그인 목록
 
@@ -21,6 +22,7 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 |----------|------|-----------|
 | [onda-slides](plugins/onda-slides) | ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성 | `/onda-slides 1분기 매출 보고서` |
 | [product-docs](plugins/product-docs) | ONDA 제품 문서 레포에 문서 생성/업데이트 + PR 자동 생성 | `/product-docs feature 로그인` |
+| [llm-wiki](plugins/llm-wiki) | ONDA LLM Wiki 검색(읽기 전용) — index 기반으로 관련 페이지를 찾아 답변 | `/llm-wiki GBP 최적화 핵심 요소는?` |
 
 ## 새 플러그인 기여
 
