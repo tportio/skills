@@ -51,15 +51,15 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ### 브랜드 토큰
 
 ```
-Primary Blue   : #0047BA
-Dark Text      : #1a1a1a
-Body Text      : #444
-Secondary Text : #888
-Light Text     : #aaa
-Border         : #e8ecf2
-Row Stripe     : #f8f9fc
+Primary Blue   : #004FC5
+Dark Text      : #191F28
+Body Text      : #333D4B
+Secondary Text : #4E5968
+Light Text     : #8B95A1
+Border         : #E5E8EB
+Row Stripe     : #F2F4F6
 Background     : #fff
-Accent Line    : #0047BA (5px)
+Accent Line    : #004FC5 (5px)
 ```
 
 ### CSS 핵심 규칙
@@ -85,7 +85,7 @@ body {
     -apple-system,
     "Noto Sans KR",
     sans-serif;
-  color: #1a1a1a;
+  color: #191F28;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -106,7 +106,7 @@ body {
   left: 0;
   right: 0;
   height: 5px;
-  background: #0047ba;
+  background: #004FC5;
 }
 
 /* ─── 슬라이드 헤더 ─── */
@@ -116,13 +116,13 @@ body {
 .hbar h2 {
   font-size: 30px;
   font-weight: 700;
-  color: #0047ba;
+  color: #004FC5;
   letter-spacing: -0.3px;
 }
 .hbar .hdesc {
   font-size: 16px;
   font-weight: 400;
-  color: #888;
+  color: #4E5968;
   margin-top: 6px;
 }
 
@@ -142,17 +142,17 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 56px;
-  border-top: 1px solid #e8ecf2;
+  border-top: 1px solid #E5E8EB;
 }
 .foot .copyright {
   font-size: 9px;
   font-weight: 400;
-  color: #bbb;
+  color: #B0B8C1;
 }
 .foot .snum {
   font-size: 9px;
   font-weight: 500;
-  color: #aaa;
+  color: #8B95A1;
 }
 
 /* ═══════════════════════════════════════
@@ -164,7 +164,7 @@ body {
   left: 0;
   right: 0;
   height: 5px;
-  background: #0047ba;
+  background: #004FC5;
 }
 .cover-header {
   position: absolute;
@@ -181,7 +181,7 @@ body {
 }
 .cover-header .tagline {
   font-size: 12px;
-  color: #aaa;
+  color: #8B95A1;
   letter-spacing: 0.5px;
   font-weight: 400;
 }
@@ -195,20 +195,20 @@ body {
 .cover-body h1 {
   font-size: 48px;
   font-weight: 800;
-  color: #0047ba;
+  color: #004FC5;
   line-height: 1.2;
   letter-spacing: -0.5px;
 }
 .cover-body .sub {
   font-size: 20px;
-  color: #666;
+  color: #4E5968;
   line-height: 1.6;
   margin-top: 20px;
   max-width: 520px;
 }
 .cover-body .date {
   font-size: 16px;
-  color: #aaa;
+  color: #8B95A1;
   margin-top: 28px;
 }
 /* 커버 우측 장식 — O 심볼 */
@@ -220,7 +220,7 @@ body {
   width: 340px;
   height: 340px;
   border-radius: 50%;
-  border: 52px solid rgba(0, 71, 186, 0.08);
+  border: 52px solid rgba(0, 79, 197, 0.08);
 }
 .cover-foot {
   position: absolute;
@@ -232,7 +232,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 56px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #E5E8EB;
 }
 .cover-foot .products {
   display: flex;
@@ -241,15 +241,15 @@ body {
 .cover-foot .pill {
   font-size: 11px;
   font-weight: 500;
-  color: #0047ba;
+  color: #004FC5;
   padding: 5px 16px;
   border-radius: 20px;
-  border: 1px solid rgba(0, 71, 186, 0.2);
-  background: rgba(0, 71, 186, 0.04);
+  border: 1px solid rgba(0, 79, 197, 0.2);
+  background: rgba(0, 79, 197, 0.04);
 }
 .cover-foot .web {
   font-size: 11px;
-  color: #bbb;
+  color: #B0B8C1;
   font-weight: 400;
 }
 
@@ -268,11 +268,11 @@ body {
 .section-content h1 {
   font-size: 42px;
   font-weight: 800;
-  color: #0047ba;
+  color: #004FC5;
 }
 .section-content .sub {
   font-size: 18px;
-  color: #888;
+  color: #4E5968;
   margin-top: 12px;
 }
 
@@ -284,11 +284,11 @@ body {
 .stitle {
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #191F28;
   margin-bottom: 14px;
   margin-top: 20px;
   padding-left: 12px;
-  border-left: 4px solid #0047ba;
+  border-left: 4px solid #004FC5;
 }
 
 /* 불렛 */
@@ -300,7 +300,7 @@ ul.bl li {
   font-size: 20px;
   line-height: 1.7;
   margin-bottom: 16px;
-  color: #444;
+  color: #333D4B;
   padding-left: 18px;
   position: relative;
 }
@@ -312,12 +312,12 @@ ul.bl li::before {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0047ba;
+  background: #004FC5;
 }
 
 /* 하이라이트 텍스트 */
 .hl {
-  color: #0047ba;
+  color: #004FC5;
   font-weight: 700;
 }
 
@@ -333,12 +333,12 @@ ul.bl li::before {
 .stat-num {
   font-size: 52px;
   font-weight: 800;
-  color: #0047ba;
+  color: #004FC5;
 }
 .stat-label {
   font-size: 14px;
   font-weight: 500;
-  color: #aaa;
+  color: #8B95A1;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-top: 6px;
@@ -346,7 +346,7 @@ ul.bl li::before {
 .stat-divider {
   width: 1px;
   height: 48px;
-  background: #ddd;
+  background: #D1D6DB;
 }
 
 /* Pill 태그 */
@@ -354,34 +354,34 @@ ul.bl li::before {
   display: inline-block;
   font-size: 14px;
   font-weight: 500;
-  color: #0047ba;
+  color: #004FC5;
   padding: 6px 18px;
   border-radius: 20px;
-  border: 1px solid rgba(0, 71, 186, 0.2);
-  background: rgba(0, 71, 186, 0.04);
+  border: 1px solid rgba(0, 79, 197, 0.2);
+  background: rgba(0, 79, 197, 0.04);
 }
 
 /* 카드 박스 */
 .card {
   background: #fff;
-  border: 1px solid #e8ecf2;
+  border: 1px solid #E5E8EB;
   border-radius: 10px;
   padding: 28px;
 }
 .card .card-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #191F28;
   margin-bottom: 10px;
 }
 .card .card-value {
   font-size: 36px;
   font-weight: 800;
-  color: #0047ba;
+  color: #004FC5;
 }
 .card .card-desc {
   font-size: 15px;
-  color: #888;
+  color: #4E5968;
   margin-top: 6px;
 }
 
@@ -392,7 +392,7 @@ table.dt {
   font-size: 17px;
 }
 table.dt thead th {
-  background: #0047ba;
+  background: #004FC5;
   color: #fff;
   font-weight: 600;
   padding: 14px 18px;
@@ -407,11 +407,11 @@ table.dt thead th:last-child {
 }
 table.dt tbody td {
   padding: 14px 18px;
-  border-bottom: 1px solid #e8ecf2;
-  color: #444;
+  border-bottom: 1px solid #E5E8EB;
+  color: #333D4B;
 }
 table.dt tbody tr:nth-child(even) {
-  background: #f8f9fc;
+  background: #F2F4F6;
 }
 table.dt tbody tr:last-child td {
   border-bottom: none;
@@ -427,7 +427,7 @@ table.dt tbody tr:last-child td:last-child {
 .divider {
   width: 100%;
   height: 1px;
-  background: #e8ecf2;
+  background: #E5E8EB;
   margin: 20px 0;
 }
 
@@ -584,7 +584,7 @@ Chart.defaults.plugins.legend.display = false;
 Chart.defaults.animation.duration = 0; // 필수 — PDF 캡처 시 빈 차트 방지
 
 // 차트 색상 팔레트 — ONDA 브랜드
-// Primary: #0047BA, Secondary: #4A90D9, Tertiary: #A0C4F1
+// Primary: #004FC5, Secondary: #4A90D9, Tertiary: #A0C4F1
 // Accent: #FF8C42, Gray: #C8CDD5
 
 // 수평 바 차트 — 라벨 잘림 방지
@@ -630,7 +630,7 @@ node "${CLAUDE_SKILL_DIR}/../onda-slides/gen_pdf.mjs" <html-path> [pdf-path]
 | -------------------------------- | ------------------------------------------------------------------- |
 | **ONDA 로고 필수**               | 커버에 반드시 `https://cdn.prod.website-files.com/...onda.svg` 사용 |
 | **Pretendard 폰트**              | `@import` 반드시 `<style>` 최상단에 포함                            |
-| **브랜드 컬러 #0047BA**          | 헤더, 타이틀, 악센트, Stat 등 모든 강조에 사용                      |
+| **브랜드 컬러 #004FC5**          | 헤더, 타이틀, 악센트, Stat 등 모든 강조에 사용                      |
 | **악센트 라인 5px**              | 모든 슬라이드 상단에 `.accent` div 포함                             |
 | **Footer 필수**                  | 모든 콘텐츠 슬라이드에 `.foot` 포함                                 |
 | **불렛 최대 4개**                | 넘으면 반드시 슬라이드 분할                                         |
@@ -641,7 +641,7 @@ node "${CLAUDE_SKILL_DIR}/../onda-slides/gen_pdf.mjs" <html-path> [pdf-path]
 | Chart.js `animation.duration: 0` | 스크린샷 시 빈 차트 방지                                            |
 | `maintainAspectRatio: false`     | 차트가 컨테이너 높이를 채우도록                                     |
 | 차트 컨테이너 높이 명시          | `height: 360px` 등                                                  |
-| `.stitle` border-left            | 4px solid #0047BA                                                   |
+| `.stitle` border-left            | 4px solid #004FC5                                                   |
 | screen 모드 CSS 분리             | `@media screen {}` 안에 프레젠테이션 전용 스타일                    |
 
 ## Phase 4: 완료 보고
