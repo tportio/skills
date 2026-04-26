@@ -3,7 +3,7 @@ name: onda-slides
 description: ONDA 공통 템플릿으로 슬라이드 프레젠테이션(HTML + PDF)을 생성한다. 차트, 표, 그리드 레이아웃 지원.
 disable-model-invocation: false
 argument-hint: "<슬라이드 데이터 또는 지시사항>"
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
+allowed-tools: Bash, Bash(pip3 install *), Bash(python3 *), Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
 ---
 
 # Presentation PDF Generator
@@ -422,6 +422,29 @@ table.dt tbody tr:last-child td:last-child {
   margin: 16px 0;
 }
 
+/* AI 생성 이미지 */
+.slide-img {
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.slide-img-full {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  right: 0;
+  bottom: 36px;
+  object-fit: cover;
+}
+.slide-img-caption {
+  font-size: 10px;
+  color: #8B95A1;
+  text-align: center;
+  margin-top: 6px;
+}
+
 /* 그리드 */
 .g2 {
   display: grid;
@@ -596,6 +619,76 @@ options: {
   }
 }
 ```
+
+### AI 이미지 슬라이드 (Gemini)
+
+도표나 차트로 표현하기 어려운 개념적 일러스트, 사진풍 이미지가 필요한 슬라이드에 Gemini API로 이미지를 생성하여 삽입할 수 있다.
+
+**사용 조건**: `GEMINI_API_KEY` 환경변수 또는 프로젝트 `.env` 파일에 키가 설정되어 있어야 한다.
+
+**생성 방법**:
+
+```bash
+# gemini-image 플러그인의 스크립트를 사용
+pip3 install google-genai python-dotenv 2>/dev/null
+python3 "${CLAUDE_SKILL_DIR}/../../gemini-image/skills/gemini-image/generate_images.py" \
+  --prompt "프롬프트" --filename "slide-img.png" --outdir "/tmp" --ratio "16:9"
+```
+
+**HTML 삽입**: 생성된 이미지를 base64로 인라인하여 HTML에 삽입한다.
+
+```bash
+# base64 인코딩
+IMG_B64=$(base64 -i /tmp/slide-img.png)
+```
+
+```html
+<!-- 이미지 + 텍스트 레이아웃 (2열 그리드) -->
+<div class="slide" id="s3">
+  <div class="accent"></div>
+  <div class="hbar">
+    <h2>슬라이드 제목</h2>
+  </div>
+  <div class="body">
+    <div class="g2">
+      <div>
+        <ul class="bl">
+          <li>핵심 포인트</li>
+          <li>설명 텍스트</li>
+        </ul>
+      </div>
+      <div>
+        <img class="slide-img" src="data:image/png;base64,{IMG_B64}" alt="설명">
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="copyright">&copy; ONDA Inc.</div>
+    <div class="snum">4 / 8</div>
+  </div>
+</div>
+
+<!-- 전면 이미지 슬라이드 -->
+<div class="slide" id="s4">
+  <div class="accent"></div>
+  <img class="slide-img-full" src="data:image/png;base64,{IMG_B64}" alt="설명">
+  <div class="foot">
+    <div class="copyright">&copy; ONDA Inc.</div>
+    <div class="snum">5 / 8</div>
+  </div>
+</div>
+```
+
+**프롬프트 작성 팁**:
+- ONDA 브랜드 컬러(#004FC5 블루)를 포함하면 슬라이드와 통일감 생김
+- "professional, clean, minimal, business presentation style" 키워드 추가
+- 한글 텍스트는 피하고 아이콘/숫자로 대체 → HTML 텍스트로 오버레이
+- `--ratio 16:9`로 슬라이드 비율에 맞추기
+
+**사용 판단 기준**:
+- 차트/표/불렛으로 충분 → CSS 컴포넌트 사용 (기본)
+- 개념도, 비유적 일러스트, 현장 사진풍 → Gemini 이미지 생성
+- `GEMINI_API_KEY`가 없으면 이미지 생성을 건너뛰고 텍스트로 대체
 
 ## Phase 3: PDF 생성
 
