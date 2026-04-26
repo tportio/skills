@@ -28,6 +28,13 @@
       "description": "ONDA LLM Wiki(tport/product-docs/llm-wiki) 검색 — 읽기 전용",
       "version": "1.0.0",
       "keywords": ["wiki", "knowledge-base", "search", "llm", "onda"]
+    },
+    {
+      "name": "gemini-image",
+      "source": "./plugins/gemini-image",
+      "description": "마크다운 글의 [IMAGE] 블록에서 Gemini API로 이미지를 생성한다",
+      "version": "1.0.0",
+      "keywords": ["image", "gemini", "imagen", "illustration", "blog", "markdown"]
     }
   ]
 }
