@@ -1,0 +1,364 @@
+/* ═══════════════════════════════════════════════════════════════
+   ONDA Slides — Stylesheet
+   브랜드 토큰 + 레이아웃 + 컴포넌트 + modifier 분기
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+@page { size: A4 landscape; margin: 0; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family:
+    "Pretendard Variable", "Pretendard",
+    -apple-system, "Noto Sans KR", sans-serif;
+  color: #191F28;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── 슬라이드 컨테이너 ──────────────────────────────────────────
+   - .slide는 base에서 display 미지정 → @media print/screen 분기 안에서만 결정
+     (v2.0.0의 simple display:flex 우선순위 함정을 원천 차단)
+   - font-size 16px = 자동 fit이 동적으로 조정하는 base
+   - 모든 컴포넌트가 em이라 base 변경 시 비례 축소
+   ────────────────────────────────────────────────────────────── */
+.slide {
+  width: 297mm;
+  height: 210mm;
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  background: #fff;
+  font-size: 16px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5em 0 3.75em;
+}
+
+.accent {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; background: #004FC5;
+}
+
+/* ─── 슬라이드 헤더 ─── */
+.hbar {
+  flex-shrink: 0;
+  padding: 0 5em;
+  margin-bottom: 2.25em;
+}
+.hbar h2 {
+  font-size: 2.75em;
+  font-weight: 700;
+  color: #004FC5;
+  letter-spacing: -0.3px;
+}
+.hbar .hdesc {
+  font-size: 1.375em;
+  font-weight: 400;
+  color: #4E5968;
+  margin-top: 0.45em;
+}
+
+/* ─── 본문 — 자연 사이즈. JS가 .body-fit wrapper 자동 주입 ─── */
+.body {
+  flex-shrink: 0;
+  padding: 0 5em;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.body-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+/* ─── Footer — font-size를 절대값으로 고정 (slide font-size 변동 영향 차단)
+   v2.0.0 fix: 빽빽한 슬라이드에서 푸터가 4.5px로 줄어드는 버그 ─── */
+.foot {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 36px;
+  font-size: 9px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  border-top: 1px solid #E5E8EB;
+}
+.foot .copyright { font-weight: 400; color: #B0B8C1; }
+.foot .snum      { font-weight: 500; color: #8B95A1; }
+
+/* ═══════════════════════════════════════
+   커버 슬라이드 — 절대 좌표 기반 (고정 크기 px)
+   ═══════════════════════════════════════ */
+.cover-accent {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 5px; background: #004FC5;
+}
+.cover-header {
+  position: absolute; top: 40px; left: 48px; right: 48px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cover-header .onda-logo { height: 28px; width: auto; }
+.cover-header .tagline {
+  font-size: 11px; color: #8B95A1;
+  letter-spacing: 0.5px; font-weight: 400;
+}
+.cover-body {
+  position: absolute; top: 50%; left: 48px;
+  transform: translateY(-55%); max-width: 65%;
+}
+.cover-body h1 {
+  font-size: 38px; font-weight: 800;
+  color: #004FC5; line-height: 1.2; letter-spacing: -0.5px;
+}
+.cover-body .sub {
+  font-size: 15px; color: #4E5968;
+  line-height: 1.6; margin-top: 16px; max-width: 520px;
+}
+.cover-body .date { font-size: 13px; color: #8B95A1; margin-top: 24px; }
+.cover-deco {
+  position: absolute; right: -40px; top: 50%;
+  transform: translateY(-50%);
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  border: 52px solid rgba(0, 79, 197, 0.08);
+}
+.cover-foot {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px; border-top: 1px solid #E5E8EB;
+}
+.cover-foot .products { display: flex; gap: 12px; }
+.cover-foot .pill {
+  font-size: 10px; font-weight: 500; color: #004FC5;
+  padding: 4px 14px; border-radius: 20px;
+  border: 1px solid rgba(0, 79, 197, 0.2);
+  background: rgba(0, 79, 197, 0.04);
+}
+.cover-foot .web { font-size: 10px; color: #B0B8C1; font-weight: 400; }
+
+/* ═══════════════════════════════════════
+   섹션 구분 슬라이드 — flex:1로 슬라이드 사이즈 적응
+   v2.0.0 fix: height:210mm 하드코딩으로 wide 모드에서 어긋남
+   ═══════════════════════════════════════ */
+.section-content {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+}
+.section-content h1 {
+  font-size: 32px; font-weight: 800; color: #004FC5;
+}
+.section-content .sub {
+  font-size: 14px; color: #4E5968; margin-top: 10px;
+}
+
+/* ═══════════════════════════════════════
+   콘텐츠 컴포넌트 (모두 em)
+   ═══════════════════════════════════════ */
+
+.stitle {
+  font-size: 1.875em;
+  font-weight: 700; color: #191F28;
+  margin-bottom: 0.6em;
+  padding-left: 0.47em;
+  border-left: 0.17em solid #004FC5;
+}
+
+ul.bl { list-style: none; padding: 0; }
+ul.bl li {
+  font-size: 2em; line-height: 1.6;
+  margin-bottom: 0.75em;
+  color: #333D4B; padding-left: 0.875em;
+  position: relative;
+}
+ul.bl li:last-child { margin-bottom: 0; }
+ul.bl li::before {
+  content: ""; position: absolute;
+  left: 0; top: 0.56em;
+  width: 0.31em; height: 0.31em;
+  border-radius: 50%; background: #004FC5;
+}
+
+.hl { color: #004FC5; font-weight: 700; }
+
+.stats {
+  display: flex; gap: 4em;
+  align-items: center; justify-content: center;
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-size: 4.5em; font-weight: 800;
+  color: #004FC5; line-height: 1.1;
+}
+.stat-label {
+  font-size: 1.125em; font-weight: 500;
+  color: #8B95A1; letter-spacing: 1px;
+  text-transform: uppercase; margin-top: 0.55em;
+}
+.stat-divider { width: 1px; height: 4em; background: #D1D6DB; }
+
+.pill {
+  display: inline-block;
+  font-size: 1.125em; font-weight: 500;
+  color: #004FC5;
+  padding: 0.4em 1.2em;
+  border-radius: 1.2em;
+  border: 1px solid rgba(0, 79, 197, 0.2);
+  background: rgba(0, 79, 197, 0.04);
+}
+
+.card {
+  background: #fff; border: 1px solid #E5E8EB;
+  border-radius: 0.75em; padding: 2.25em;
+}
+.card .card-title {
+  font-size: 1.625em; font-weight: 700;
+  color: #191F28; margin-bottom: 0.54em;
+}
+.card .card-value {
+  font-size: 3.5em; font-weight: 800;
+  color: #004FC5; line-height: 1.1;
+}
+.card .card-desc {
+  font-size: 1.25em; color: #4E5968; margin-top: 0.5em;
+}
+
+table.dt {
+  width: 100%; border-collapse: collapse;
+  font-size: 1.5em;
+}
+table.dt thead th {
+  background: #004FC5; color: #fff;
+  font-weight: 600;
+  padding: 0.75em 1em;
+  text-align: left;
+  font-size: 0.92em;
+}
+table.dt thead th:first-child { border-radius: 6px 0 0 0; }
+table.dt thead th:last-child  { border-radius: 0 6px 0 0; }
+table.dt tbody td {
+  padding: 0.75em 1em;
+  border-bottom: 1px solid #E5E8EB;
+  color: #333D4B;
+}
+table.dt tbody tr:nth-child(even) { background: #F2F4F6; }
+table.dt tbody tr:last-child td { border-bottom: none; }
+table.dt tbody tr:last-child td:first-child { border-radius: 0 0 0 6px; }
+table.dt tbody tr:last-child td:last-child  { border-radius: 0 0 6px 0; }
+
+.divider {
+  width: 100%; height: 1px;
+  background: #E5E8EB; margin: 1em 0;
+}
+
+.slide-img {
+  width: 100%; height: auto;
+  max-height: 26em;
+  object-fit: contain;
+  border-radius: 0.5em;
+}
+.slide-img-full {
+  position: absolute;
+  top: 5px; left: 0; right: 0; bottom: 36px;
+  object-fit: cover;
+}
+.slide-img-caption {
+  font-size: 0.75em; color: #8B95A1;
+  text-align: center; margin-top: 0.4em;
+}
+
+.g2  { display: grid; grid-template-columns: 1fr 1fr;       gap: 1.75em; }
+.g2w { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1.75em; }
+.g3  { display: grid; grid-template-columns: 1fr 1fr 1fr;   gap: 1.25em; }
+.g4  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1em; }
+
+/* ═══════════════════════════════════════════════════════════════
+   화면/인쇄 분기
+   v2.0.0 fix: .slide의 display를 base에 두지 않고 분기 안에만 둠 →
+   modifier별 추가 CSS가 specificity로 덮을 위험 원천 차단
+   ═══════════════════════════════════════════════════════════════ */
+
+@media screen {
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #1a1a1a;
+  }
+  .slide {
+    display: none;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform-origin: center center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  .slide.active { display: flex; }
+}
+
+@media print {
+  html, body { background: #fff; }
+  .slide { display: flex; }
+}
+
+/* ═══════════════════════════════════════
+   wide 모드 — 16:9 (PowerPoint/Google Slides 표준)
+   13.33in × 7.5in = 338.67mm × 190.5mm
+   ═══════════════════════════════════════ */
+body.mode-wide .slide { width: 338.67mm; height: 190.5mm; }
+
+/* simple 모드는 CSS 분기 없음 — 콘텐츠 절제 룰만 SKILL.md에서 LLM이 적용
+   (default도 자동 fit으로 콘텐츠 양에 맞춰 비례 조정되므로 시각 차이 없음) */
+
+/* ═══════════════════════════════════════
+   dark 모드
+   ═══════════════════════════════════════ */
+body.mode-dark              { background: #0F1419; color: #E5E8EB; }
+body.mode-dark .slide       { background: #0F1419; }
+body.mode-dark .hbar h2     { color: #4A90D9; }
+body.mode-dark .hbar .hdesc { color: #8B95A1; }
+body.mode-dark .accent,
+body.mode-dark .cover-accent { background: #4A90D9; }
+body.mode-dark .stitle      { color: #E5E8EB; border-left-color: #4A90D9; }
+body.mode-dark ul.bl li     { color: #C8CDD5; }
+body.mode-dark ul.bl li::before { background: #4A90D9; }
+body.mode-dark .hl          { color: #4A90D9; }
+body.mode-dark .stat-num    { color: #4A90D9; }
+body.mode-dark .stat-label  { color: #8B95A1; }
+body.mode-dark .stat-divider { background: #2A3038; }
+body.mode-dark .pill {
+  color: #4A90D9;
+  border-color: rgba(74, 144, 217, 0.3);
+  background: rgba(74, 144, 217, 0.1);
+}
+body.mode-dark .card             { background: #181E26; border-color: #2A3038; }
+body.mode-dark .card .card-title { color: #E5E8EB; }
+body.mode-dark .card .card-value { color: #4A90D9; }
+body.mode-dark .card .card-desc  { color: #8B95A1; }
+body.mode-dark table.dt thead th { background: #4A90D9; }
+body.mode-dark table.dt tbody td { color: #C8CDD5; border-bottom-color: #2A3038; }
+body.mode-dark table.dt tbody tr:nth-child(even) { background: #181E26; }
+body.mode-dark .divider          { background: #2A3038; }
+body.mode-dark .foot,
+body.mode-dark .cover-foot       { border-top-color: #2A3038; }
+body.mode-dark .foot .copyright,
+body.mode-dark .cover-foot .web  { color: #4E5968; }
+body.mode-dark .foot .snum       { color: #8B95A1; }
+body.mode-dark .cover-body h1    { color: #4A90D9; }
+body.mode-dark .cover-body .sub  { color: #C8CDD5; }
+body.mode-dark .cover-body .date { color: #8B95A1; }
+body.mode-dark .cover-deco       { border-color: rgba(74, 144, 217, 0.12); }
+body.mode-dark .cover-header .tagline { color: #8B95A1; }
+body.mode-dark .section-content h1   { color: #4A90D9; }
+body.mode-dark .section-content .sub { color: #8B95A1; }
+@media screen { body.mode-dark { background: #050709; } }
+
+/* ═══════════════════════════════════════
+   en 모드 — Inter 폰트
+   ═══════════════════════════════════════ */
+body.mode-en {
+  font-family:
+    "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
