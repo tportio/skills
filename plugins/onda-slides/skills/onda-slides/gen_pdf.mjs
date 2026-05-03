@@ -22,9 +22,18 @@ const pdfPath = process.argv[3] || htmlPath.replace(/\.html$/, '.pdf');
 
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
-await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 2 });
+// viewport는 wide(1280x720)도 들어갈 수 있게 충분히 크게
+await page.setViewport({ width: 1400, height: 900, deviceScaleFactor: 2 });
 await page.goto(htmlUrl, { waitUntil: 'networkidle0', timeout: 15000 });
 await new Promise(r => setTimeout(r, 2000));
+
+// modifier 감지 — wide면 PDF 페이지 사이즈도 16:9
+const isWide = await page.evaluate(() => document.body.classList.contains('mode-wide'));
+// PDF 페이지 사이즈 (pt 단위, 1pt = 1/72in)
+// A4 landscape: 11.69in × 8.27in = 841.89 × 595.28
+// 16:9 wide:    13.33in × 7.5in  = 960    × 540
+const PAGE_W = isWide ? 960 : 841.89;
+const PAGE_H = isWide ? 540 : 595.28;
 
 const slideCount = await page.evaluate(() => document.querySelectorAll('.slide').length);
 const pngPaths = [];
@@ -51,8 +60,8 @@ const pdfDoc = await PDFDocument.create();
 for (const p of pngPaths) {
   const imgBytes = fs.readFileSync(p);
   const img = await pdfDoc.embedPng(imgBytes);
-  const pg = pdfDoc.addPage([841.89, 595.28]); // A4 landscape
-  pg.drawImage(img, { x: 0, y: 0, width: 841.89, height: 595.28 });
+  const pg = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  pg.drawImage(img, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
 }
 
 const pdfBytes = await pdfDoc.save();
