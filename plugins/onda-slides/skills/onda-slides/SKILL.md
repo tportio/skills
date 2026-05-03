@@ -61,17 +61,21 @@ plugins/onda-slides/skills/onda-slides/
 
 ## 워크플로우
 
-### Phase 0: 화면/테마/보안 modifier 미지정 시 → 한 번에 질문
+### Phase 0: 미지정 modifier 차원 → 한 번에 질문
 
-`$ARGUMENTS`에 `wide`, `dark`, `confidential` **중 어느 것도 없으면** (다른 modifier가 있어도 이 셋 중 하나라도 빠졌으면 동일), 슬라이드 작성 전에 **AskUserQuestion 1회 호출**로 세 질문을 한꺼번에 묻는다 (`questions` 배열에 3개):
+slides는 5개 직교 차원이 있고 각각 default가 있다. `$ARGUMENTS`에 **명시되지 않은 차원**이 하나라도 있으면 슬라이드 작성 전에 **AskUserQuestion 1회 호출**로 미지정 차원을 모아서 묻는다 (`questions` 배열에 N개, N = 미지정 차원 수).
 
-1. **화면 비율** — 옵션: `default (A4 landscape)` / `wide (16:9, PowerPoint 표준)`
-2. **테마** — 옵션: `light (default)` / `dark (야간 행사)`
-3. **보안 표시** — 옵션: `없음` / `confidential (워터마크 + 경고문구)`
+| 차원 | default | modifier 키워드 | 질문 옵션 |
+| --- | --- | --- | --- |
+| 화면 비율 | A4 landscape | `wide` | `default (A4)` / `wide (16:9, PowerPoint 표준)` |
+| 테마 | light | `dark` | `light` / `dark (야간 행사 / 어두운 발표장)` |
+| 언어 | 한글 (Pretendard) | `en` | `한글` / `영문 (Inter)` |
+| 콘텐츠 스타일 | 전문가/실무자 | `simple` | `default` / `simple (비전문가, 한 메시지/슬라이드, 큰 폰트)` |
+| 보안 표시 | 없음 | `confidential` | `없음` / `confidential (대각선 워터마크 + 경고문구)` |
 
-답에 따라 modifier 조합 결정 후 진행. 한 번에 묻는 것이 핵심 — 3번의 popup은 마찰.
+**명시된 차원은 스킵**, 미지정 차원만 questions 배열에 담아 1회 호출. 한 차원당 popup으로 끊어 묻지 말 것 — 마찰 비용. `$ARGUMENTS`에 modifier 토큰이 하나도 없으면 5개 모두 질문.
 
-`simple`과 `en`은 명시적으로 입력된 경우에만 적용 (대부분 한글·전문가 자료라서 default가 더 적절).
+추측해서 default로 자동 진행 ❌ — 사용자가 직접 선택해야 한다 (특히 `confidential`은 보안 의도라 default 가정 위험).
 
 ### Phase 1: 정보 수집
 
@@ -87,6 +91,7 @@ plugins/onda-slides/skills/onda-slides/
 5. **슬라이드 내용**: 각 슬라이드 헤더 / 불렛 / 차트 / 표 / 그리드
 6. **작성자 정보** (closing 슬라이드용): 알려진 소스부터 채우고 모르는 필드만 질문
    - **자동 추출**: `git config user.name` / `user.email` / system context의 user profile / 메모리 / 현재 대화에서 이미 언급된 정보
+   - **"자동 추출"은 raw copy일 때만** — 음역(영↔한↔한자)·번역·약어 풀이·형식 변환·도메인/별칭 추론은 모두 "추측"이라 미지 필드와 동일 취급. **필드의 언어/스크립트/포맷이 소스와 다르면 그 필드는 무조건 미지** → AskUserQuestion. raw copy 가능한 소스가 없으면 그냥 묻기.
    - **회사**: 기본 `ONDA` (다른 회사 명시 없는 한)
    - **이메일**: git config의 email 그대로
    - **모르는 필드**(한글 이름·직책·연락처 등)만 AskUserQuestion 1회 호출로 모아서 질문
@@ -275,7 +280,7 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
 </div>
 ```
 
-작성자 정보 채우는 우선순위 (Phase 1 #5 참고):
+작성자 정보 채우는 우선순위 (Phase 1 #6 참고):
 1. `git config user.name` / `user.email` / system context의 user profile / 메모리 / 대화 컨텍스트로 자동 추출
 2. 모르는 필드(예: 한글 이름·직책·연락처)만 AskUserQuestion 1회 호출
 3. 자동 추출한 값은 한 번 보여주고 가벼운 확인 OK — 매번 전체를 묻지 말 것
