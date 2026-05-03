@@ -71,9 +71,13 @@
       return slide.clientHeight - slidePadV - bodyPadV - hbarH - hbarMb;
     }
 
-    const MAX = 16, MIN = 6;
-    // 1차: max base로 시도
-    slide.style.fontSize = MAX + 'px';
+    // stylesheet 기본값을 MAX로 — wide 모드에선 .slide { font-size: 18px } 자동 반영
+    // inline style 비워서 stylesheet 값 다시 읽음 (이전 fit 호출이 줄여놓은 값 무시)
+    // 가드: hidden/detached 슬라이드에서 0 또는 NaN 반환되는 엣지 케이스 → 16으로 fallback
+    slide.style.fontSize = '';
+    const computedFs = parseFloat(getComputedStyle(slide).fontSize);
+    const MAX = computedFs > 0 ? computedFs : 16;
+    const MIN = 6;
     void fit.offsetHeight;
     const avail = getAvailable();
     if (avail <= 0) {
@@ -100,12 +104,24 @@
   }
 
   // ── 슬라이드 네비게이션 ─────────────────────────────────────
-  function show(i) {
-    cur = (i + total) % total;
+  // 양 끝에서 wrap-around 안 함 — 마지막에서 → / 첫 페이지에서 ← 누르면 그대로 멈춤
+  // URL hash로 페이지 추적 — `#3`이면 3번째 슬라이드(1-indexed)에서 시작, 공유 가능
+  function show(i, opts) {
+    const next = Math.max(0, Math.min(total - 1, i));
+    const force = opts && opts.force;
+    if (!force && next === cur && slides[cur]?.classList.contains('active')) return;
+    cur = next;
     slides.forEach((el, j) => el.classList.toggle('active', j === cur));
     // fix: 화면 모드에서 hidden 시점에 fit이 잘못 측정된 슬라이드를 활성화 직후 재측정
-    // headless(PDF)는 gen_pdf.mjs가 직접 __fitAllContent를 호출하므로 중복 호출 무방
     fitContent(slides[cur]);
+    const hash = `#${cur + 1}`;
+    if (location.hash !== hash) history.replaceState(null, '', hash);
+  }
+
+  function slideFromHash() {
+    const m = location.hash.match(/^#(\d+)$/);
+    if (!m) return 0;
+    return Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1));
   }
 
   function toggleFullscreen() {
@@ -116,16 +132,33 @@
     }
   }
 
+  // input/textarea/contenteditable에선 단축키 무시 — 미래에 슬라이드에 폼 넣을 때 안전
+  function isFormTarget(t) {
+    if (!t) return false;
+    const tag = t.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable;
+  }
   document.addEventListener('keydown', (e) => {
+    if (isFormTarget(e.target)) return;
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') show(cur + 1);
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(cur - 1);
     else if (e.key === 'Home') show(0);
     else if (e.key === 'End') show(total - 1);
     else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
   });
-  document.addEventListener('click', () => show(cur + 1));
+  // 클릭으로 다음 슬라이드. 단, 인터랙티브 요소(링크/버튼/폼/canvas) 클릭은 제외
+  // → 차트 툴팁, 향후 추가될 링크, 텍스트 선택 시 의도치 않은 페이지 이동 차단
+  // → URL hash 공유 사용자가 우연한 클릭으로 hash 깨지는 것도 방지
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a, button, input, textarea, select, canvas, [data-no-advance]')) return;
+    show(cur + 1);
+  });
   window.addEventListener('resize', fitViewport);
   document.addEventListener('fullscreenchange', fitViewport);
+  // 외부에서 hash로 점프 (브라우저 ←/→, 링크 클릭). show()의 history.replaceState는
+  // hashchange를 발생시키지 않음 — 무한루프 안 생김.
+  // pushState로 바꿔서 back-button 지원할 거면 'popstate'도 함께 listen해야 함.
+  window.addEventListener('hashchange', () => show(slideFromHash(), { force: true }));
 
   // 폰트/이미지 로드 후 초기화
   Promise.resolve(document.fonts ? document.fonts.ready : null).then(() => {
@@ -134,6 +167,6 @@
     window.__fitContent = fitContent;
     window.__fitAllContent = fitAllContent;
     fitViewport();
-    show(0);
+    show(slideFromHash(), { force: true });
   });
 })();

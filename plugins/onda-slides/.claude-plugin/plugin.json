@@ -1,5 +1,5 @@
 {
   "name": "onda-slides",
-  "description": "ONDA 공통 템플릿 기반 슬라이드 프레젠테이션(HTML + PDF) 생성. modifier로 simple/wide/dark/en 조합 가능. 콘텐츠 양에 맞춰 자동 fit.",
-  "version": "2.0.0"
+  "description": "ONDA 공통 템플릿 기반 슬라이드 프레젠테이션(HTML + PDF) 생성. modifier로 simple/wide/dark/en/confidential 조합 가능. 콘텐츠 양에 맞춰 자동 fit.",
+  "version": "2.0.1"
 }

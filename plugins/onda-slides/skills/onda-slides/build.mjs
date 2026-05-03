@@ -10,7 +10,7 @@
  *
  * - <slides-fragment>: file containing only <div class="slide">...</div> blocks
  * - <output>:          absolute path for the output HTML
- * - --modifiers:       comma-separated subset of {simple, wide, dark, en}
+ * - --modifiers:       comma-separated subset of {simple, wide, dark, en, confidential}
  * - --title:           HTML <title>. Default: extracted from first <h1>/<h2>, else "ONDA Slides"
  */
 import fs from 'fs';
@@ -46,7 +46,7 @@ const modifiers = (flags.modifiers ?? '')
   .map((s) => s.trim())
   .filter(Boolean);
 
-const ALLOWED_MODIFIERS = new Set(['simple', 'wide', 'dark', 'en']);
+const ALLOWED_MODIFIERS = new Set(['simple', 'wide', 'dark', 'en', 'confidential']);
 for (const m of modifiers) {
   if (!ALLOWED_MODIFIERS.has(m)) {
     console.error(`Unknown modifier: ${m}. Allowed: ${[...ALLOWED_MODIFIERS].join(', ')}`);
@@ -58,6 +58,15 @@ const slidesFragment = fs.readFileSync(slidesPath, 'utf8');
 if (!/<div\s+class=["'][^"']*\bslide\b/.test(slidesFragment)) {
   console.error(`Error: ${slidesPath} contains no <div class="slide ..."> blocks. Aborting.`);
   process.exit(1);
+}
+// 클로징 슬라이드 누락 경고 (필수는 아니지만 SKILL.md 권장 — 강제하지 않고 경고만)
+if (!/\bclosing-content\b/.test(slidesFragment)) {
+  console.warn(`Warning: no closing slide (.closing-content) detected. SKILL.md recommends adding "감사합니다" + author info as the last slide.`);
+}
+// closing slide의 {{LAST}}/{{LAST_INDEX}}/{{TOTAL}} 잔존 placeholder 감지 — LLM이 치환 잊으면 페이지에 그대로 노출됨
+const stalePlaceholder = slidesFragment.match(/\{\{(LAST|TOTAL|LAST_INDEX)[^}]*\}\}/);
+if (stalePlaceholder) {
+  console.warn(`Warning: 잔존 placeholder 감지: ${stalePlaceholder[0]} — closing slide의 {{LAST}}, {{LAST_INDEX}}, {{TOTAL}}는 빌드 전 실제 값으로 치환해야 함.`);
 }
 const styles = fs.readFileSync(path.join(__dirname, 'template/styles.css'), 'utf8');
 const runtime = fs.readFileSync(path.join(__dirname, 'template/runtime.js'), 'utf8');

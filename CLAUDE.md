@@ -22,6 +22,16 @@ ONDA 팀 공용 Claude Code 스킬 플러그인 마켓플레이스 (`tportio/ski
 3. `plugins/<name>/skills/<skill>/SKILL.md` 작성 (frontmatter + 스킬 프롬프트)
 4. `.claude-plugin/marketplace.json`의 `plugins` 배열에 등록
 
+## 플러그인 릴리즈 체크리스트 (version bump)
+
+플러그인 코드를 변경하고 release 의도("vX.Y.Z" 커밋 메시지)로 push할 때 **반드시 같은 commit에 포함**:
+
+1. `plugins/<name>/.claude-plugin/plugin.json` — `version` bump + 기능/modifier 추가 시 `description` 동기화
+2. `.claude-plugin/marketplace.json` — `plugins[<name>].version` bump + `description` 동기화
+3. 코드 변경분과 함께 한 commit으로 묶어 push
+
+**왜:** Claude Code는 두 metadata의 `version`을 보고 사용자 로컬 캐시(`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`) 갱신 여부 판단. version 그대로면 코드 변경분이 절대 적용 안 된다. SKILL.md/CLAUDE.md 등 doc 변경도 같은 commit에 묶어 force-push 한 번으로 끝낸다.
+
 ## SKILL.md frontmatter 필수 필드
 
 ```yaml
@@ -36,7 +46,7 @@ allowed-tools: Bash, Read, Write, Edit, ...
 
 ## 현재 플러그인
 
-- **onda-slides**: ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성. Puppeteer 스크린샷 → pdf-lib로 PDF 조합. modifier로 `simple`(비전문가 대상 큰 폰트) 모드 선택. 런타임 의존성: `puppeteer`, `pdf-lib` (npm).
+- **onda-slides**: ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성. Puppeteer 스크린샷 → pdf-lib로 PDF 조합. modifier로 `simple`/`wide`/`dark`/`en`/`confidential` 모드 선택, 조합 가능(예: `simple+wide`). 런타임 의존성: `puppeteer`, `pdf-lib` (npm).
 - **product-docs**: ONDA 제품 문서 레포(`tportio/product-docs`)에 문서 생성/업데이트 및 PR 자동 생성. 아무 tport 서브 레포에서나 실행 가능. 런타임 의존성 없음 (git, `gh` CLI 필요).
 - **llm-wiki**: LLM Wiki(`tport/product-docs/llm-wiki`) 읽기 전용 검색. `index.md`를 가이드로 관련 위키 페이지를 Read해서 답변. 쓰기·ingest 없음 (ingest는 별도 `/ingest` 스킬). 경로 하드코딩: `~/Workspaces/tport/product-docs/llm-wiki`.
 - **gemini-image**: 마크다운 글의 `[IMAGE]` 블록에서 Gemini API(Nano Banana)로 이미지 생성. 프롬프트 자동 보강, 인포그래픽/에디토리얼 자동 감지. 런타임 의존성: `google-genai`, `python-dotenv` (pip). `GEMINI_API_KEY` 필요.

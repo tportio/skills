@@ -1,6 +1,6 @@
 ---
 name: onda-slides
-description: ONDA 공통 템플릿으로 슬라이드 프레젠테이션(HTML + PDF)을 생성한다. 차트, 표, 그리드, AI 이미지 지원. 모디파이어로 simple/wide/dark/en 조합.
+description: ONDA 공통 템플릿으로 슬라이드 프레젠테이션(HTML + PDF)을 생성한다. 차트, 표, 그리드, AI 이미지 지원. 모디파이어로 simple/wide/dark/en/confidential 조합.
 disable-model-invocation: false
 argument-hint: "[modifier...] <슬라이드 데이터 또는 지시사항>"
 allowed-tools: Bash, Bash(pip3 install *), Bash(python3 *), Bash(npm *), Bash(node *), Read, Write, Edit, Glob, Grep, Agent, AskUserQuestion
@@ -40,6 +40,7 @@ plugins/onda-slides/skills/onda-slides/
 | `wide` | 화면 비율 | 16:9 (13.33in × 7.5in, PowerPoint/Google Slides 표준). 기본은 A4 landscape |
 | `dark` | 테마 | 다크 모드. 야간 행사 / 어두운 발표장 |
 | `en` | 언어 | 영문 폰트(Inter). 기본은 Pretendard |
+| `confidential` | 보안 표시 | 모든 슬라이드에 대각선 `CONFIDENTIAL` 워터마크 + footer 경고문구. 사외 유출 금지 자료 |
 
 > default 자체에 자동 fit. 슬라이드별 콘텐츠 양에 맞춰 base font-size를 조정한다 (콘텐츠 적으면 큰 폰트 + 정중앙, 많으면 비례 축소).
 
@@ -52,11 +53,25 @@ plugins/onda-slides/skills/onda-slides/
 /onda-slides simple 매출 보고서           → modifiers=[simple],    content="매출 보고서"
 /onda-slides simple wide 매출 보고서      → modifiers=[simple,wide], content="..."
 /onda-slides wide dark en IR deck         → modifiers=[wide,dark,en], content="IR deck"
+/onda-slides confidential 보안 자료        → modifiers=[confidential], content="보안 자료"
+/onda-slides wide dark confidential 이사회 → modifiers=[wide,dark,confidential], content="이사회"
 /onda-slides 매출 simple                  → modifiers=[], content="매출 simple"
                                            (첫 토큰이 modifier 아니면 즉시 멈춤)
 ```
 
 ## 워크플로우
+
+### Phase 0: 화면/테마/보안 modifier 미지정 시 → 한 번에 질문
+
+`$ARGUMENTS`에 `wide`, `dark`, `confidential` **중 어느 것도 없으면** (다른 modifier가 있어도 이 셋 중 하나라도 빠졌으면 동일), 슬라이드 작성 전에 **AskUserQuestion 1회 호출**로 세 질문을 한꺼번에 묻는다 (`questions` 배열에 3개):
+
+1. **화면 비율** — 옵션: `default (A4 landscape)` / `wide (16:9, PowerPoint 표준)`
+2. **테마** — 옵션: `light (default)` / `dark (야간 행사)`
+3. **보안 표시** — 옵션: `없음` / `confidential (워터마크 + 경고문구)`
+
+답에 따라 modifier 조합 결정 후 진행. 한 번에 묻는 것이 핵심 — 3번의 popup은 마찰.
+
+`simple`과 `en`은 명시적으로 입력된 경우에만 적용 (대부분 한글·전문가 자료라서 default가 더 적절).
 
 ### Phase 1: 정보 수집
 
@@ -68,7 +83,14 @@ plugins/onda-slides/skills/onda-slides/
 1. **출력 경로**: 별도 지정 시에만 질문 (기본 `$PWD`)
 2. **기본 정보**: 제목, 부제목, 날짜
 3. **로고**: 이미지 파일 또는 base64 (없으면 ONDA 공식 로고)
-4. **슬라이드 내용**: 각 슬라이드 헤더 / 불렛 / 차트 / 표 / 그리드
+4. **커버 chip 태그** (`.cover-foot .products`): 자료 주제와 관련된 ONDA 제품·기능 2-4개 (예: `ONDA HUB`, `Channel Manager`, `CRS`, `Google FBL`, `PMS`). 자료 성격상 무관하면 생략 가능. 주제로부터 자동 추론 가능 (예: "채널 관리 효율화" → `Channel Manager`, `ONDA HUB`)
+5. **슬라이드 내용**: 각 슬라이드 헤더 / 불렛 / 차트 / 표 / 그리드
+6. **작성자 정보** (closing 슬라이드용): 알려진 소스부터 채우고 모르는 필드만 질문
+   - **자동 추출**: `git config user.name` / `user.email` / system context의 user profile / 메모리 / 현재 대화에서 이미 언급된 정보
+   - **회사**: 기본 `ONDA` (다른 회사 명시 없는 한)
+   - **이메일**: git config의 email 그대로
+   - **모르는 필드**(한글 이름·직책·연락처 등)만 AskUserQuestion 1회 호출로 모아서 질문
+   - 추출한 값은 한 번 보여주고 "이대로 넣어도 될까요?" 정도의 가벼운 확인은 OK — 매번 전체를 묻지 말 것
 
 ### Phase 2: 슬라이드 fragment 작성
 
@@ -133,6 +155,7 @@ JS fit이 슬라이드별 base font-size를 조정한다.
 - `.g2`, `.g2w`, `.g3`, `.g4` 모두 허용
 - 차트 적극 활용 (차트 슬라이드는 fit 대상 제외 — 모델이 적정 양 조정)
 - 표 행 수 제한 없음 (너무 많으면 fit으로 작아짐)
+- **flow / svc-badge / card.featured / bullet variant 적극 활용** — 글씨 나열 대신 시각화. inline HTML/style도 자유
 
 ### simple — 비전문가 대상
 
@@ -144,7 +167,9 @@ JS fit이 슬라이드별 base font-size를 조정한다.
 4. **차트 심플**: 범례 최소화, 데이터 포인트 7개 이하
 5. **텍스트 짧게**: 불렛 1줄 25자 이내, 키워드
 6. **표 행 4개 이하**
-7. **한 슬라이드 한 컴포넌트** (불렛/Stat/카드/표 중 하나만)
+7. **한 슬라이드 한 컴포넌트** (불렛/Stat/카드/표/flow 중 하나만)
+8. **flow는 최대 4단계** (5+이면 핵심만 추려 단순화)
+9. **svc-badge / card.featured / bullet variant**는 가독성 도움 → 적극 사용. inline HTML도 OK
 
 ## 컴포넌트 마크업 가이드
 
@@ -177,9 +202,15 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
     <div class="sub">부제목 설명</div>
     <div class="date">2026.04</div>
   </div>
-  <div class="cover-deco"></div>
   <div class="cover-foot">
-    <div class="products"><!-- pill 태그 --></div>
+    <!-- products: 발표 주제와 관련된 ONDA 제품·기능 chip 태그를 2-4개 박는다.
+         예: ONDA HUB, CRS, Channel Manager, Google FBL, PMS 등.
+         자료 성격상 무관하면 비워둬도 됨 (예: 사내 회의록). -->
+    <div class="products">
+      <span class="pill">ONDA HUB</span>
+      <span class="pill">Channel Manager</span>
+      <span class="pill">CRS</span>
+    </div>
     <div class="web">onda.me</div>
   </div>
 </div>
@@ -219,6 +250,37 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
   </div>
 </div>
 ```
+
+#### 클로징 슬라이드 — **항상 마지막에** 추가 (권장)
+
+```html
+<!-- s{{LAST}} / {{LAST_INDEX}} / {{TOTAL}}은 실제 숫자로 교체 (예: id="s7", "8 / 8") -->
+<div class="slide" id="s{{LAST}}">
+  <div class="accent"></div>
+  <div class="closing-content">
+    <img class="onda-logo"
+         src="https://cdn.prod.website-files.com/62fc3cdcd1a5bb1370c2d067/63c0a7b567846c336d75f050_onda.svg"
+         alt="ONDA" />
+    <div class="thanks">감사합니다</div>
+    <div class="closing-author">
+      <div class="name">{{작성자 이름}} ({{영문 별칭}})</div>
+      <div class="title">{{직책}}, {{회사}}</div>
+      <div class="contact">{{이메일}} · {{연락처}}</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="copyright">&copy; ONDA Inc.</div>
+    <div class="snum">{{LAST_INDEX}} / {{TOTAL}}</div>
+  </div>
+</div>
+```
+
+작성자 정보 채우는 우선순위 (Phase 1 #5 참고):
+1. `git config user.name` / `user.email` / system context의 user profile / 메모리 / 대화 컨텍스트로 자동 추출
+2. 모르는 필드(예: 한글 이름·직책·연락처)만 AskUserQuestion 1회 호출
+3. 자동 추출한 값은 한 번 보여주고 가벼운 확인 OK — 매번 전체를 묻지 말 것
+
+`build.mjs`는 클로징 슬라이드 누락 시 **경고만** 출력하고 빌드는 진행 — 강제 아님.
 
 ### 컴포넌트
 
@@ -268,7 +330,81 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
 
 <!-- 구분선 -->
 <div class="divider"></div>
+
+<!-- Flow 다이어그램 (프로세스/구조/경로 시각화) -->
+<!-- variant: 기본(outline) / .alt(solid blue) / .accent(orange) / .muted(gray) -->
+<div class="flow">
+  <div class="flow-step muted">Opera PMS</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step">블루웨이브</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step alt">ONDA</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step">Google Hotel Center</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step accent">shillahotels.com</div>
+</div>
+<!-- step에 부가설명 넣을 때 -->
+<div class="flow-step alt">
+  ONDA<span class="flow-desc">수수료 차감</span>
+</div>
+
+<!-- 추천 카드 + 코너 배지 ("권장" / "BEST" 등) -->
+<div class="g2">
+  <div class="card">
+    <div class="card-title">옵션 A: Google Maps 전용</div>
+    <div class="card-value">3.0%</div>
+    <div class="card-desc">거래액 기준 수수료</div>
+    <ul class="bl">
+      <li class="check">Google Maps Official Website 노출</li>
+      <li class="check">투숙 완료 건 기준 정산</li>
+      <li class="dim">네이버 지도 노출</li>
+      <li class="dim">카카오맵 노출</li>
+    </ul>
+  </div>
+  <div class="card featured">
+    <span class="card-badge">권장</span>
+    <div class="card-title">옵션 B: 3대 맵서비스 패키지</div>
+    <div class="card-value">2.0% / 10% / 10%</div>
+    <div class="card-desc">Google / 네이버 / 카카오</div>
+    <ul class="bl">
+      <li class="check">Google Maps Official Website (2.0%)</li>
+      <li class="check">네이버 지도 호텔 검색 (10.0%)</li>
+      <li class="check">카카오맵 호텔 검색 (10.0%)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 서비스 아이콘 배지 (헤더 위 브랜드 라벨) -->
+<!-- variant: .google / .naver / .kakao / 미지정(기본 blue) -->
+<div class="svc-badge">
+  <span class="svc-icon google">G</span> Google Maps
+</div>
+<div class="svc-badge">
+  <span class="svc-icon naver">N</span> 네이버 지도
+</div>
+<div class="svc-badge">
+  <span class="svc-icon kakao">K</span> 카카오맵
+</div>
 ```
+
+#### 이미지 그리드 (스크린샷 비교 등)
+
+`.slide-img`(컨테이너 폭 맞춤, max-height 26em)를 `.g2/.g3/.g4` 안에 넣어 mobile 스크린샷 2-4개를 나란히 배치:
+
+```html
+<div class="g3">
+  <img class="slide-img" src="screenshot-1.png" alt="검색 결과">
+  <img class="slide-img" src="screenshot-2.png" alt="상세 화면">
+  <img class="slide-img" src="screenshot-3.png" alt="예약 옵션">
+</div>
+```
+
+#### Custom inline HTML/style — 자유롭게 활용
+
+위 컴포넌트로 부족하면 **inline HTML + `style="..."`** 직접 작성 OK. 단, 색상/폰트는 브랜드 토큰(`#004FC5`, `#FF8C42`, Pretendard 등)을 따를 것. 빈번하게 재사용되는 패턴은 `template/styles.css`에 정식 컴포넌트로 승격.
+
+예: 두 줄 강조 박스, 비대칭 layout, 특별한 코너 ribbon — 모두 inline 가능.
 
 ### 그리드 클래스
 
@@ -370,6 +506,11 @@ gh api repos/{owner}/{repo}/contents/{path} --jq '.content' | base64 -d
 | 모든 콘텐츠 슬라이드에 `.foot` | copyright + 슬라이드 번호 |
 | 모든 콘텐츠 슬라이드에 `.accent` | 상단 5px 블루 라인 |
 | `.body`는 항상 콘텐츠 슬라이드에만 | 커버/섹션은 `.body` 없음 |
+| 마지막 슬라이드 = `.closing-content` | "감사합니다" + 작성자 정보 (권장 — 누락 시 build.mjs 경고만) |
+| 커버 `.cover-foot .products` 채움 | 자료 주제 관련 ONDA 제품 chip 2-4개 (예: `ONDA HUB`, `CRS`). 비워두면 footer 좌측이 휑함 |
+| URL hash 동기화 | 페이지 이동 시 `#1`, `#2` … 로 자동 갱신 — 링크 공유 가능 |
+| 양 끝 wrap-around 없음 | →/← 키와 클릭 모두 첫·마지막에서 멈춤 (hash 공유 안정성 우선, v2.0.0+) |
+| 키보드 단축키 | `←/→` 페이지, `Home/End`, `F` 풀스크린 |
 | 차트 컨테이너 height 명시 | `style="height: 360px"` |
 | Chart.js `animation.duration: 0` | PDF 캡처 시 빈 차트 방지 |
 | Chart.js `autoSkip: false` | 수평 바 라벨 자동 생략 방지 |

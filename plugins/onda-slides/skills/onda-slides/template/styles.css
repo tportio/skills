@@ -51,7 +51,7 @@ body {
   font-size: 2.75em;
   font-weight: 700;
   color: #004FC5;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.02em;
 }
 .hbar .hdesc {
   font-size: 1.375em;
@@ -88,55 +88,73 @@ body {
 .foot .snum      { font-weight: 500; color: #8B95A1; }
 
 /* ═══════════════════════════════════════
-   커버 슬라이드 — 절대 좌표 기반 (고정 크기 px)
+   커버 슬라이드 — em 기반 (base 16px → wide에서 자동 비례)
+   .body 없어 fit 알고리즘이 건드리지 않으므로 base는 항상 안정
    ═══════════════════════════════════════ */
 .cover-accent {
   position: absolute; top: 0; left: 0; right: 0;
   height: 5px; background: #004FC5;
 }
 .cover-header {
-  position: absolute; top: 40px; left: 48px; right: 48px;
+  position: absolute; top: 2.5em; left: 3em; right: 3em;
   display: flex; justify-content: space-between; align-items: center;
 }
-.cover-header .onda-logo { height: 28px; width: auto; }
+.cover-header .onda-logo { height: 1.75em; width: auto; }
 .cover-header .tagline {
-  font-size: 11px; color: #8B95A1;
-  letter-spacing: 0.5px; font-weight: 400;
+  font-size: 0.6875em; color: #8B95A1;
+  letter-spacing: 0.045em; font-weight: 400;
 }
 .cover-body {
-  position: absolute; top: 50%; left: 48px;
-  transform: translateY(-55%); max-width: 65%;
+  position: absolute; top: 50%; left: 3em;
+  transform: translateY(-55%); max-width: 70%;
 }
 .cover-body h1 {
-  font-size: 38px; font-weight: 800;
-  color: #004FC5; line-height: 1.2; letter-spacing: -0.5px;
+  font-size: 4.5em; font-weight: 800;
+  color: #004FC5; line-height: 1.15; letter-spacing: -0.014em;
 }
 .cover-body .sub {
-  font-size: 15px; color: #4E5968;
-  line-height: 1.6; margin-top: 16px; max-width: 520px;
+  font-size: 1.375em; color: #4E5968;
+  line-height: 1.55; margin-top: 1.1em; max-width: 32em;
 }
-.cover-body .date { font-size: 13px; color: #8B95A1; margin-top: 24px; }
-.cover-deco {
-  position: absolute; right: -40px; top: 50%;
+.cover-body .date { font-size: 1em; color: #8B95A1; margin-top: 2.25em; }
+/* cover-deco div는 모든 슬라이드 공통 .slide::after로 통합됐다.
+   기존 마크업 호환을 위해 div는 보이지 않게 처리 (markup에 있어도 무해) */
+.cover-deco { display: none; }
+
+/* 모든 슬라이드 우측 deco — 브랜드 일관성
+   rem 사용: html font-size(16px) 기준 고정 → auto-fit이 .slide font-size를
+   바꿔도 데코 크기 출렁이지 않음. wide 모드는 아래에서 override. */
+.slide::after {
+  content: ''; position: absolute;
+  right: -2.5rem; top: 50%;
   transform: translateY(-50%);
-  width: 340px; height: 340px;
+  width: 21rem; height: 21rem;
   border-radius: 50%;
-  border: 52px solid rgba(0, 79, 197, 0.08);
+  border: 3.25rem solid rgba(0, 79, 197, 0.06);
+  pointer-events: none;
+  z-index: 0;
+}
+/* deco는 콘텐츠 뒤에 — 모든 직계 자식이 데코/워터마크 위로.
+   :where()로 0 specificity → position:absolute를 지정한 요소(.accent, .foot, .cover-* 등)는
+   자기 position 값 유지. 커스텀 inline HTML 직계 자식도 자동 커버 (z-index 누락 함정 방지). */
+:where(.slide > *) {
+  position: relative;
+  z-index: 1;
 }
 .cover-foot {
   position: absolute; bottom: 0; left: 0; right: 0;
-  height: 48px;
+  height: 3em;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 48px; border-top: 1px solid #E5E8EB;
+  padding: 0 3em; border-top: 1px solid #E5E8EB;
 }
-.cover-foot .products { display: flex; gap: 12px; }
+.cover-foot .products { display: flex; gap: 0.75em; }
 .cover-foot .pill {
-  font-size: 10px; font-weight: 500; color: #004FC5;
-  padding: 4px 14px; border-radius: 20px;
+  font-size: 0.625em; font-weight: 500; color: #004FC5;
+  padding: 0.25em 0.875em; border-radius: 1.25em;
   border: 1px solid rgba(0, 79, 197, 0.2);
   background: rgba(0, 79, 197, 0.04);
 }
-.cover-foot .web { font-size: 10px; color: #B0B8C1; font-weight: 400; }
+.cover-foot .web { font-size: 0.625em; color: #B0B8C1; font-weight: 400; }
 
 /* ═══════════════════════════════════════
    섹션 구분 슬라이드 — flex:1로 슬라이드 사이즈 적응
@@ -149,10 +167,43 @@ body {
   text-align: center;
 }
 .section-content h1 {
-  font-size: 32px; font-weight: 800; color: #004FC5;
+  font-size: 7.5em; font-weight: 800; color: #004FC5;
+  line-height: 1; letter-spacing: -0.017em;
 }
 .section-content .sub {
-  font-size: 14px; color: #4E5968; margin-top: 10px;
+  font-size: 2em; color: #4E5968; margin-top: 0.55em; font-weight: 500;
+}
+
+/* ═══════════════════════════════════════
+   클로징 슬라이드 — "감사합니다" + 작성자 정보
+   템플릿: 가운데 ONDA 로고 + 감사합니다 + 작성자 블록
+   ═══════════════════════════════════════ */
+.closing-content {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  gap: 1.25em;
+}
+.closing-content .onda-logo { height: 3em; width: auto; }
+.closing-content .thanks {
+  font-size: 4em; font-weight: 800;
+  color: #004FC5; letter-spacing: -0.016em;
+  margin-top: 0.5em;
+}
+.closing-author {
+  margin-top: 3em;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.4em;
+}
+.closing-author .name {
+  font-size: 1.25em; font-weight: 700; color: #191F28;
+}
+.closing-author .title {
+  font-size: 1em; color: #4E5968; font-weight: 500;
+}
+.closing-author .contact {
+  font-size: 0.875em; color: #8B95A1; margin-top: 0.4em;
 }
 
 /* ═══════════════════════════════════════
@@ -195,7 +246,7 @@ ul.bl li::before {
 }
 .stat-label {
   font-size: 1.125em; font-weight: 500;
-  color: #8B95A1; letter-spacing: 1px;
+  color: #8B95A1; letter-spacing: 0.06em;
   text-transform: uppercase; margin-top: 0.55em;
 }
 .stat-divider { width: 1px; height: 4em; background: #D1D6DB; }
@@ -254,6 +305,90 @@ table.dt tbody tr:last-child td:last-child  { border-radius: 0 0 6px 0; }
   background: #E5E8EB; margin: 1em 0;
 }
 
+/* ═══════════════════════════════════════
+   Flow 다이어그램 — 박스 → 화살표 체인
+   용도: 프로세스/서비스 구조/정산 경로 시각화
+   variant: 기본(outline) / .alt(solid blue) / .accent(orange) / .muted(gray)
+   ═══════════════════════════════════════ */
+.flow {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5em; flex-wrap: wrap; margin: 0.5em 0;
+}
+.flow-step {
+  font-size: 1.125em; font-weight: 600;
+  color: #004FC5;
+  background: rgba(0, 79, 197, 0.04);
+  border: 1px solid rgba(0, 79, 197, 0.2);
+  border-radius: 0.5em;
+  padding: 0.5em 1em;
+  text-align: center; min-width: 5em;
+}
+.flow-step.alt    { background: #004FC5; color: #fff; border-color: #004FC5; }
+.flow-step.accent { background: #FF8C42; color: #fff; border-color: #FF8C42; }
+.flow-step.muted  { background: #F2F4F6; color: #4E5968; border-color: #D1D6DB; }
+.flow-step .flow-desc {
+  display: block; font-size: 0.7em; font-weight: 400;
+  margin-top: 0.25em; opacity: 0.85;
+}
+.flow-arrow {
+  font-size: 1.25em; color: #8B95A1; flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════
+   추천 카드 — 강조 테두리 + 코너 배지 ("권장", "BEST" 등)
+   ═══════════════════════════════════════ */
+.card.featured {
+  border: 2px solid #004FC5;
+  background: rgba(0, 79, 197, 0.02);
+  position: relative;
+}
+.card-badge {
+  position: absolute;
+  top: -0.6em; right: 1em;
+  font-size: 0.875em; font-weight: 600;
+  color: #fff; background: #004FC5;
+  padding: 0.25em 0.875em; border-radius: 1em;
+}
+
+/* ═══════════════════════════════════════
+   서비스 아이콘 배지 — 브랜드 letter + 서비스 이름
+   variant: .google / .naver / .kakao / 미지정(기본 blue)
+   ═══════════════════════════════════════ */
+.svc-badge {
+  display: inline-flex; align-items: center;
+  gap: 0.5em; font-size: 1.5em; font-weight: 700;
+  color: #191F28;
+}
+.svc-icon {
+  width: 1.4em; height: 1.4em;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 0.3em;
+  font-size: 0.85em; font-weight: 800;
+  color: #fff; background: #004FC5;
+  flex-shrink: 0;
+}
+.svc-icon.google { background: #4285F4; }
+.svc-icon.naver  { background: #03C75A; }
+.svc-icon.kakao  { background: #FAE100; color: #181600; }
+
+/* ═══════════════════════════════════════
+   Bullet variants — check (옵션 포함) / dim (옵션 제외)
+   .bl 베이스에 li 단위로 적용
+   ═══════════════════════════════════════ */
+ul.bl li.check::before {
+  content: "✓"; background: none;
+  width: auto; height: auto; border-radius: 0;
+  color: #00A86B; font-weight: 700;
+  font-size: 1.1em; top: 0.25em; left: -0.1em;
+}
+ul.bl li.dim       { color: #B0B8C1; }
+ul.bl li.dim::before {
+  content: "—"; background: none;
+  width: auto; height: auto; border-radius: 0;
+  color: #B0B8C1; font-size: 1em;
+  top: 0.4em; left: -0.05em;
+}
+
 .slide-img {
   width: 100%; height: auto;
   max-height: 26em;
@@ -306,7 +441,18 @@ table.dt tbody tr:last-child td:last-child  { border-radius: 0 0 6px 0; }
    wide 모드 — 16:9 (PowerPoint/Google Slides 표준)
    13.33in × 7.5in = 338.67mm × 190.5mm
    ═══════════════════════════════════════ */
-body.mode-wide .slide { width: 338.67mm; height: 190.5mm; }
+body.mode-wide .slide {
+  width: 338.67mm; height: 190.5mm;
+  /* slide가 14% 더 넓으니 base font-size도 키워 모든 em 컴포넌트 자동 비례
+     fit 알고리즘은 MAX 16px 기준이라 콘텐츠 슬라이드만 영향 받음 — 거기선 fit이 다시 줄여줌
+     cover/section은 fit 안 받아 base 18px 그대로 → 글씨 자연스럽게 커짐 */
+  font-size: 18px;
+}
+/* wide 슬라이드는 14% 넓어 → 데코 원도 14% 키워서 캔버스 비율 일관성 유지 */
+body.mode-wide .slide::after {
+  width: 24rem; height: 24rem;
+  border-width: 3.75rem;
+}
 
 /* simple 모드는 CSS 분기 없음 — 콘텐츠 절제 룰만 SKILL.md에서 LLM이 적용
    (default도 자동 fit으로 콘텐츠 양에 맞춰 비례 조정되므로 시각 차이 없음) */
@@ -348,11 +494,77 @@ body.mode-dark .foot .snum       { color: #8B95A1; }
 body.mode-dark .cover-body h1    { color: #4A90D9; }
 body.mode-dark .cover-body .sub  { color: #C8CDD5; }
 body.mode-dark .cover-body .date { color: #8B95A1; }
-body.mode-dark .cover-deco       { border-color: rgba(74, 144, 217, 0.12); }
+body.mode-dark .slide::after     { border-color: rgba(74, 144, 217, 0.12); }
 body.mode-dark .cover-header .tagline { color: #8B95A1; }
 body.mode-dark .section-content h1   { color: #4A90D9; }
 body.mode-dark .section-content .sub { color: #8B95A1; }
+body.mode-dark .closing-content .thanks      { color: #4A90D9; }
+body.mode-dark .closing-author .name         { color: #E5E8EB; }
+body.mode-dark .closing-author .title        { color: #C8CDD5; }
+body.mode-dark .closing-author .contact      { color: #8B95A1; }
+body.mode-dark .flow-step                    { color: #4A90D9; background: rgba(74,144,217,0.1); border-color: rgba(74,144,217,0.3); }
+body.mode-dark .flow-step.alt                { background: #4A90D9; color: #0F1419; border-color: #4A90D9; }
+body.mode-dark .flow-step.muted              { background: #1A2028; color: #C8CDD5; border-color: #2A3038; }
+body.mode-dark .flow-arrow                   { color: #4E5968; }
+body.mode-dark .card.featured                { border-color: #4A90D9; background: rgba(74,144,217,0.04); }
+body.mode-dark .card-badge                   { background: #4A90D9; color: #0F1419; }
+body.mode-dark .svc-badge                    { color: #E5E8EB; }
+body.mode-dark .svc-icon                     { background: #4A90D9; }
+body.mode-dark ul.bl li.check::before        { color: #4ADE80; }
+body.mode-dark ul.bl li.dim                  { color: #4E5968; }
+body.mode-dark ul.bl li.dim::before          { color: #4E5968; }
 @media screen { body.mode-dark { background: #050709; } }
+
+/* ═══════════════════════════════════════
+   confidential 모드
+   - 슬라이드 중앙에 대각선 "CONFIDENTIAL" 워터마크 (반투명)
+   - footer 중앙에 무단 복제·배포 금지 경고문구
+   font-size 모두 px — 보안 chrome은 auto-fit 영향 받으면 안 됨
+
+   z-index 2 = 콘텐츠 위에. .slide-img-full(z-index 1)이 풀블리드일 때
+   워터마크가 가려지면 정작 유출 방지가 무력화 → 위로 올림.
+   alpha 0.07로 워낙 옅어 텍스트 가독성 영향은 미미. pointer-events:none. */
+body.mode-confidential .slide::before {
+  content: 'CONFIDENTIAL';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 110px;
+  font-weight: 800;
+  letter-spacing: 10px;
+  color: rgba(220, 38, 38, 0.07);
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+}
+/* wide 모드는 슬라이드 더 넓음 → 워터마크 키워야 캔버스 채움 */
+body.mode-wide.mode-confidential .slide::before {
+  font-size: 130px;
+  letter-spacing: 12px;
+}
+/* footer 경고 — .foot은 9px 고정, .cover-foot은 .slide font-size 상속이라
+   inherit 쓰면 슬라이드 타입마다 크기 달라짐 → 양쪽 모두 9px로 명시 고정.
+   짧은 라벨 + dot 구분으로 9px에서도 읽힘 */
+body.mode-confidential .foot::after,
+body.mode-confidential .cover-foot::after {
+  content: 'CONFIDENTIAL · 무단 복제·배포 금지';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #DC2626;
+  white-space: nowrap;
+}
+/* dark 조합 — 어두운 배경에선 alpha 더 키우고 톤도 밝게 */
+body.mode-confidential.mode-dark .slide::before { color: rgba(252, 165, 165, 0.14); }
+body.mode-confidential.mode-dark .foot::after,
+body.mode-confidential.mode-dark .cover-foot::after {
+  color: #FCA5A5;
+}
 
 /* ═══════════════════════════════════════
    en 모드 — Inter 폰트
