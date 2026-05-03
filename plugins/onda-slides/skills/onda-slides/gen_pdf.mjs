@@ -43,6 +43,11 @@ for (let i = 0; i < slideCount; i++) {
     document.querySelectorAll('.slide').forEach((s, j) => {
       s.classList.toggle('active', j === idx);
     });
+    // active 토글 후 fit 재실행 — display:none이었던 슬라이드는 clientHeight=0이라
+    // 초기 fitAllContent에서 측정 못 하고 16px로 남아 있음. 활성화 직후 다시 측정.
+    if (typeof window.__fitContent === 'function') {
+      window.__fitContent(document.querySelectorAll('.slide')[idx]);
+    }
   }, i);
   await new Promise(r => setTimeout(r, 300));
 
