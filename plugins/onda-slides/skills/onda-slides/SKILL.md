@@ -91,13 +91,16 @@ slides는 5개 직교 차원이 있고 각각 default가 있다. `$ARGUMENTS`에
 3. **로고**: 이미지 파일 또는 base64 (없으면 ONDA 공식 로고)
 4. **커버 chip 태그** (`.cover-foot .products`): 자료 주제와 관련된 ONDA 제품·기능 2-4개 (예: `ONDA HUB`, `Channel Manager`, `CRS`, `Google FBL`, `PMS`). 자료 성격상 무관하면 생략 가능. 주제로부터 자동 추론 가능 (예: "채널 관리 효율화" → `Channel Manager`, `ONDA HUB`)
 5. **슬라이드 내용**: 각 슬라이드 헤더 / 불렛 / 차트 / 표 / 그리드
-6. **작성자 정보** (closing 슬라이드용): 알려진 소스부터 채우고 모르는 필드만 질문
-   - **자동 추출**: `git config user.name` / `user.email` / system context의 user profile / 메모리 / 현재 대화에서 이미 언급된 정보
-   - **"자동 추출"은 raw copy일 때만** — 음역(영↔한↔한자)·번역·약어 풀이·형식 변환·도메인/별칭 추론은 모두 "추측"이라 미지 필드와 동일 취급. **필드의 언어/스크립트/포맷이 소스와 다르면 그 필드는 무조건 미지** → AskUserQuestion. raw copy 가능한 소스가 없으면 그냥 묻기.
-   - **회사**: 기본 `ONDA` (다른 회사 명시 없는 한)
-   - **이메일**: git config의 email 그대로
-   - **모르는 필드**(한글 이름·직책·연락처 등)만 AskUserQuestion 1회 호출로 모아서 질문
-   - 추출한 값은 한 번 보여주고 "이대로 넣어도 될까요?" 정도의 가벼운 확인은 OK — 매번 전체를 묻지 말 것
+6. **작성자 정보** (closing 슬라이드용): **모든 필드를 AskUserQuestion 1회 호출로 묻기**. 텍스트로 "이렇게 채웠는데 다르면 말해주세요" 식으로 자동 진행 ❌ — 반드시 AskUserQuestion 옵션/입력.
+   - **prefill 소스 우선순위 (이 순서로 체크)**:
+     1. 메모리(`user_*`/`feedback_*` 타입에서 사용자 본인으로 식별된 정보) — 사용자가 직접 알려준 신뢰값
+     2. global/project CLAUDE.md에 명시된 사용자 정보
+     3. 시스템 컨텍스트 user profile (예: `userEmail`)
+     4. 현재 대화에서 사용자가 직접 언급한 정보
+     5. (마지막 fallback) `git config user.name`/`user.email` — 머신 설정값이라 신뢰도 낮음. 1-4가 모두 비어 있을 때만 조심스럽게 사용. 영문 이름/공용 계정/다른 사람 셋업 가능성 인지하고 AskUserQuestion에서 prefill일 뿐 자동 확정 금지.
+   - **prefill도 raw copy일 때만** — 음역(영↔한)·번역·약어 풀이·도메인 추론은 추측 → 빈 값. 필드 언어/스크립트/포맷이 소스와 다르면 무조건 미지.
+   - **AskUserQuestion 구성**: 모든 필드(prefill값+미지)를 1회 호출(`questions` 배열)에 담아 1 popup으로. prefill 가능한 필드는 옵션 첫 번째로 그 값 + "직접 입력 →" 옵션 함께. 미지 필드는 자유 입력 + "비워두기" 옵션.
+   - **신규 입력값 저장 제안**: 사용자가 직접 입력해서 채운 필드(prefill 1-4 소스에 없던 값)가 있으면, 슬라이드 빌드 직전에 한 번 더 가벼운 질문 — "이 작성자 정보를 global CLAUDE.md(`~/.claude/CLAUDE.md`)에 저장해둘까요? 다음부터는 자동으로 prefill됩니다" → yes면 CLAUDE.md에 사용자 식별 섹션 추가/업데이트, no면 이번만 사용. 한 번 저장되면 다음 호출부터 prefill 1순위(메모리/CLAUDE.md)에서 raw copy로 잡혀 popup 마찰 없음.
 
 ### Phase 2: 슬라이드 fragment 작성
 
@@ -282,10 +285,11 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
 </div>
 ```
 
-작성자 정보 채우는 우선순위 (Phase 1 #6 참고):
-1. `git config user.name` / `user.email` / system context의 user profile / 메모리 / 대화 컨텍스트로 자동 추출
-2. 모르는 필드(예: 한글 이름·직책·연락처)만 AskUserQuestion 1회 호출
-3. 자동 추출한 값은 한 번 보여주고 가벼운 확인 OK — 매번 전체를 묻지 말 것
+작성자 정보 채우는 절차 (Phase 1 #6 참고):
+1. prefill 소스 우선순위: 메모리 → CLAUDE.md → 시스템 user profile → 현재 대화 → (마지막 fallback) `git config`. git config는 머신 설정이라 신뢰도 낮음 — 1-4 비어있을 때만, 자동 확정 금지
+2. raw copy일 때만 prefill — 음역/번역/추론은 추측이라 미지 처리
+3. **모든 필드를 AskUserQuestion 1회 호출에 담아 prefill+확인** — prefill값은 옵션 첫 번째 + "직접 입력" 옵션, 미지는 자유 입력
+4. "그럴듯한 값으로 채우고 다르면 말해주세요" 식 자동 진행 ❌
 
 `build.mjs`는 클로징 슬라이드 누락 시 **경고만** 출력하고 빌드는 진행 — 강제 아님.
 

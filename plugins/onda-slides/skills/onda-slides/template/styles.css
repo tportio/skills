@@ -36,7 +36,9 @@ body {
   padding: 1.5em 0 3.75em;
 }
 
-.accent {
+/* 슬라이드 상단 5px 블루바. .slide 직계 자식 한정 — `.flow-step.accent`(오렌지 변종)
+   같은 깊은 곳의 `.accent`에 position:absolute / height:5px 누수 차단. */
+.slide > .accent {
   position: absolute; top: 0; left: 0; right: 0;
   height: 5px; background: #004FC5;
 }
@@ -467,7 +469,7 @@ body.mode-dark              { background: #0F1419; color: #E5E8EB; }
 body.mode-dark .slide       { background: #0F1419; }
 body.mode-dark .hbar h2     { color: #4A90D9; }
 body.mode-dark .hbar .hdesc { color: #8B95A1; }
-body.mode-dark .accent,
+body.mode-dark .slide > .accent,
 body.mode-dark .cover-accent { background: #4A90D9; }
 body.mode-dark .stitle      { color: #E5E8EB; border-left-color: #4A90D9; }
 body.mode-dark ul.bl li     { color: #C8CDD5; }
