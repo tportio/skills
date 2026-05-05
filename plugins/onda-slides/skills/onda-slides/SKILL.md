@@ -26,6 +26,8 @@ plugins/onda-slides/skills/onda-slides/
 **LLM이 작성하는 것**: 슬라이드 마크업 (`<div class="slide">...</div>` 들) — slides fragment 1개 파일.
 **LLM이 건드리지 않는 것**: `template/`, `build.mjs`, `gen_pdf.mjs` (디자인 변경 요청이 아니라면).
 
+> **⛔ ASCII 다이어그램·아스키 아트 금지** — 이 스킬은 HTML 슬라이드. `<pre>`나 monospace로 박스/화살표/트리/카드 그림 그리지 말 것. 프로세스/구조/관계는 반드시 정식 컴포넌트(`.flow`, `.g2/.g3`, `.card`, `.svc-badge`, `.dt`)로. 부족하면 inline HTML + `style="..."`로 직접 그려도 OK — 그래도 글자 그림은 금지. 일반 채팅 응답에서 ASCII 다이어그램 쓰는 습관을 슬라이드로 가져오는 실수가 흔하다.
+
 ## Input
 
 `$ARGUMENTS` — `[modifier...] <슬라이드 데이터>`
@@ -411,6 +413,20 @@ Border         : #E5E8EB    Row Stripe     : #F2F4F6
 
 예: 두 줄 강조 박스, 비대칭 layout, 특별한 코너 ribbon — 모두 inline 가능.
 
+#### ⛔ ASCII 다이어그램 절대 금지
+
+`<pre>`, monospace, `─│┌┐└┘├┤┬┴┼` 박스 문자, `→←↑↓` 화살표만 단독 등으로 **글자로 그림 그리는 모든 행위 금지**. 일반 채팅 응답이나 마크다운 문서에서 ASCII 박스/플로우/트리를 쓰는 습관을 슬라이드로 옮겨 오는 실수가 흔하다 (다른 AI agent가 이 스킬 호출할 때 특히).
+
+| 의도 | ❌ ASCII | ✅ 정식 마크업 |
+| --- | --- | --- |
+| 프로세스/순서 | `[A] → [B] → [C]` | `<div class="flow">` + `.flow-step` |
+| 구조/계층 | `┌─A─┐ ├─B─┤` | `.g2/.g3` + `.card` |
+| 비교/대조 | `\| A \| B \|` (정렬한 텍스트) | `<table class="dt">` 또는 `.g2`+카드 |
+| 라벨/뱃지 | `[Google]` `[Naver]` | `.svc-badge` 또는 `.pill` |
+| 강조 박스 | `╔══╗ ║...║ ╚══╝` | inline HTML + `style="border:1px solid #004FC5"` |
+
+이유: ASCII는 (1) Pretendard에서 정렬 깨짐 (2) auto-fit이 monospace 길이 못 맞춤 (3) 브랜드 일관성 무너짐 (4) PDF 캡처 후 픽셀화. inline HTML이라도 항상 div/span + style이지 `<pre>`로 그림 그리지 말 것.
+
 ### 그리드 클래스
 
 | 클래스 | 컬럼 | 용도 |
@@ -506,6 +522,7 @@ gh api repos/{owner}/{repo}/contents/{path} --jq '.content' | base64 -d
 
 | 항목 | 설명 |
 | --- | --- |
+| ⛔ ASCII 다이어그램 금지 | `<pre>`/monospace로 박스·화살표·트리 그리지 말 것. 정식 `.flow`/`.g2-4`/`.card`/`.dt`/`.svc-badge` 또는 inline HTML+style만 사용 |
 | `<div class="slide active" id="s0">` | **첫 슬라이드만 active** — JS show(0)이 동기화하지만 페이지 로드 직후 깜빡임 방지 |
 | 첫 슬라이드 = 커버 권장 | 다른 타입을 첫 슬라이드로 둘 때도 `class="slide active"` 필수 |
 | 모든 콘텐츠 슬라이드에 `.foot` | copyright + 슬라이드 번호 |
