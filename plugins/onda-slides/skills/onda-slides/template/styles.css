@@ -553,7 +553,7 @@ body.mode-wide.mode-confidential .slide::before {
    짧은 라벨 + dot 구분으로 9px에서도 읽힘 */
 body.mode-confidential .foot::after,
 body.mode-confidential .cover-foot::after {
-  content: 'CONFIDENTIAL · 무단 복제·배포 금지';
+  content: 'CONFIDENTIAL · 영업비밀보호법 · 무단 공개·배포·복사·사용 금지';
   position: absolute;
   left: 50%;
   top: 50%;
