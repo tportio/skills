@@ -1,5 +1,5 @@
 {
   "name": "gemini-image",
   "description": "마크다운 글의 [IMAGE] 블록에서 Gemini API로 이미지를 생성한다",
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

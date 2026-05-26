@@ -26,7 +26,7 @@ Ask the user the following questions in order to generate the config file.
 **Questions:**
 
 1. **Docs repo path**: Absolute local path to the ONDA product docs repo
-   - e.g. `~/Workspaces/tport/product-docs`
+   - e.g. `<your-tport-clone>/product-docs` (such as `~/Workspaces/tport/product-docs`, `~/dev/tport/product-docs`, etc.)
    - If path doesn't exist → ask whether to clone
 2. **Clone URL** (only if path doesn't exist): Git clone URL for the docs repo
    - Default: `git@github.com:tportio/product-docs.git`
@@ -43,7 +43,7 @@ Ask the user the following questions in order to generate the config file.
 
 ```json
 {
-  "productDocsPath": "/Users/you/Workspaces/tport/product-docs",
+  "productDocsPath": "<absolute path to your product-docs clone>",
   "cloneUrl": "git@github.com:tportio/product-docs.git",
   "products": ["OSP"],
   "author": "yourname"

@@ -1,5 +1,5 @@
 {
   "name": "llm-wiki",
-  "description": "ONDA LLM Wiki(tport/product-docs/llm-wiki) 검색 — 읽기 전용",
-  "version": "1.0.0"
+  "description": "ONDA product-docs 위키 라이프사이클: 검색(query) + 인제스트(ingest) + 대화 보존(filing) + 건강 점검(lint)",
+  "version": "2.0.0"
 }
