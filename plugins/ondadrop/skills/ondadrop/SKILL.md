@@ -1,0 +1,43 @@
+---
+name: ondadrop
+description: drop.tport.io에 정적 사이트(폴더/파일)를 배포한다. ondadrop CLI로 빌드 산출물을 사내 비공개 URL로 올리고, 필요시 공유 링크 발급을 안내. 정적 사이트·빌드 결과·미리보기 공유 요청 시 사용.
+disable-model-invocation: false
+argument-hint: "<dir|file> [--name 이름] [--expire 14d]"
+allowed-tools: Bash, Read, Glob
+---
+
+# ondadrop — 사내 정적 사이트 배포
+
+`drop.tport.io`(ONDA 사내 Netlify Drop)에 정적 사이트를 배포하는 ondadrop CLI 래퍼.
+
+## 배포물 모델
+- 배포물은 **기본 비공개** — 사내 Okta 로그인으로만 열람.
+- **외부 공유**는 `drop.tport.io` 전체 목록에서 **공유 링크**(기본 7일·철회 가능)를 발급.
+- 배포 만료 기본 14일, `--expire 30d|permanent`로 변경.
+
+## 절차
+
+1. **CLI 확인**: `which ondadrop`
+   - 없으면 https://drop.tport.io/cli.html 에서 (로그인 후) 플랫폼 바이너리 다운로드 안내.
+     macOS는 `xattr -d com.apple.quarantine ondadrop` 후 PATH에 둔다.
+
+2. **토큰 확인**: `~/.config/ondadrop/token` 존재 또는 `$DROP_TOKEN` 설정 여부.
+   - 없으면 cli.html에서 토큰 발급 → `ondadrop login <token>` 안내.
+
+3. **배포 대상 결정**: 사용자가 지정한 폴더/파일. 빌드가 필요한 프로젝트(예: `dist/`, `build/`, `out/`)면 먼저 빌드 후 산출물 디렉토리를 사용.
+
+4. **배포**: `ondadrop deploy <dir|file> [--name "이름"] [--expire 14d]`
+   - 단일 HTML/파일도 가능(root에서 서빙됨).
+   - 성공 시 출력된 `https://<id>.drop.tport.io` URL을 사용자에게 전달.
+
+5. **외부 공유가 필요하면**: 배포물은 비공개이므로 `drop.tport.io` 목록에서 해당 항목의 "공유 링크"를 발급하라고 안내(로그인 없는 외부 접근용, 기본 7일).
+
+## 예시
+
+```bash
+ondadrop deploy ./dist --name "마케팅 랜딩 시안"
+ondadrop deploy ./report --expire 30d
+ondadrop deploy index.html
+```
+
+CI에서는 `DROP_TOKEN` 환경변수로 토큰을 주입한다.

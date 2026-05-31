@@ -1,0 +1,5 @@
+{
+  "name": "ondadrop",
+  "description": "drop.tport.io에 정적 사이트(폴더/파일)를 ondadrop CLI로 배포. 사내 비공개 URL 발급 + 외부 공유 링크 안내.",
+  "version": "1.0.0"
+}
