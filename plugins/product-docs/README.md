@@ -2,6 +2,15 @@
 
 ONDA 제품 문서 레포(`tportio/product-docs`)에 문서를 생성·업데이트하고 PR 까지 자동으로 만드는 Claude Code 스킬입니다. 어느 tport 서브 레포에서든 호출할 수 있습니다.
 
+## 설치
+
+```
+/plugin marketplace add git@github.com:tportio/skills.git   # 최초 1회
+/plugin install product-docs@tport-skills
+```
+
+> Private 레포라 SSH URL 로 추가합니다. tportio org 접근 권한과 GitHub 에 등록된 SSH 키가 필요합니다. 전체 플러그인 목록은 [루트 README](../../README.md) 참고.
+
 ## 왜 만들었나
 
 제품 문서는 한 곳(`product-docs`)에 모으되, 실제 작업은 본인이 일하던 서브 레포(예: `osp`, `hub`, `backoffice`)에서 컨텍스트를 그대로 들고 시작하고 싶습니다. 이 스킬은 그 두 가지를 잇습니다 — 현재 디렉토리에서 컨텍스트를 모아 docs 레포에 PR 까지 자동으로 만들어 줍니다.

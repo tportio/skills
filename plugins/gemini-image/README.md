@@ -2,6 +2,15 @@
 
 마크다운 글 본문의 `[IMAGE]` 블록을 자동 파싱해 **Gemini API(Nano Banana — `gemini-2.5-flash-image`)** 로 일괄 이미지 생성하는 Claude Code 스킬입니다. 단건 프롬프트도 지원합니다.
 
+## 설치
+
+```
+/plugin marketplace add git@github.com:tportio/skills.git   # 최초 1회
+/plugin install gemini-image@tport-skills
+```
+
+> Private 레포라 SSH URL 로 추가합니다. tportio org 접근 권한과 GitHub 에 등록된 SSH 키가 필요합니다. 전체 플러그인 목록은 [루트 README](../../README.md) 참고.
+
 ## 왜 만들었나
 
 블로그/리포트/보고서를 쓸 때 본문에 들어갈 일러스트·인포그래픽을 글과 분리된 도구로 따로 만들면 컨텍스트 스위칭이 큽니다. 이 스킬은 글 안에 `[IMAGE]` 블록만 적어두면 한 번에 전부 생성해 줍니다. 프롬프트 품질 자동 보강·인포그래픽 감지가 들어 있어 평균 결과물이 안정적입니다.

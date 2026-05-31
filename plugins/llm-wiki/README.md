@@ -2,6 +2,15 @@
 
 ONDA `product-docs` 위키 라이프사이클을 통째로 다루는 Claude Code 플러그인입니다. **검색(읽기 전용) + 인제스트 + 대화 보존 + 건강 점검** — 4개 스킬을 한 플러그인에 묶었습니다. tport 어느 디렉토리에서든 호출 가능하도록 `product-docs` 경로를 자동 해석합니다.
 
+## 설치
+
+```
+/plugin marketplace add git@github.com:tportio/skills.git   # 최초 1회
+/plugin install llm-wiki@tport-skills
+```
+
+> Private 레포라 SSH URL 로 추가합니다. tportio org 접근 권한과 GitHub 에 등록된 SSH 키가 필요합니다. 전체 플러그인 목록은 [루트 README](../../README.md) 참고.
+
 ## 왜 만들었나
 
 기존에는 위키 관리 워크플로우(`ingest`·`filing`·`lint`)가 `product-docs/.claude/skills/` 하위에 project-local 로만 있어, 해당 리포 디렉토리 안에서만 자동 로드됐습니다. 이 플러그인은 그걸 팀 마켓플레이스로 끌어올려 어느 tport 서브 레포에서든 `/query`, `/ingest`, `/filing`, `/lint` 를 호출할 수 있게 만듭니다.

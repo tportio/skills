@@ -2,6 +2,15 @@
 
 `drop.tport.io`(ONDA 사내 Netlify Drop)에 정적 사이트를 배포하는 `ondadrop` CLI 래퍼 스킬입니다. 빌드 산출물·미리보기·리포트 등 정적 파일을 사내 비공개 URL 로 올리고, 필요 시 외부 공유 링크 발급까지 안내합니다.
 
+## 설치
+
+```
+/plugin marketplace add git@github.com:tportio/skills.git   # 최초 1회
+/plugin install ondadrop@tport-skills
+```
+
+> Private 레포라 SSH URL 로 추가합니다. tportio org 접근 권한과 GitHub 에 등록된 SSH 키가 필요합니다. 전체 플러그인 목록은 [루트 README](../../README.md) 참고.
+
 ## 왜 만들었나
 
 시안·리포트·문서 미리보기를 빠르게 공유해야 할 때, 매번 S3 버킷이나 별도 호스팅을 셋업하기는 번거롭습니다. `ondadrop` 은 폴더/파일 하나를 사내 비공개 URL 로 즉시 올려주고, 외부에 보여줘야 하면 만료 가능한 공유 링크를 발급합니다. 이 스킬은 그 흐름(CLI·토큰 확인 → 빌드 → 배포 → 공유)을 대신 챙겨줍니다.
