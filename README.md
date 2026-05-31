@@ -14,9 +14,11 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 /plugin install onda-slides@tport-skills
 /plugin install product-docs@tport-skills
 /plugin install llm-wiki@tport-skills
+/plugin install gemini-image@tport-skills
+/plugin install ondadrop@tport-skills
 ```
 
-설치가 완료되면 `/onda-slides`, `/product-docs`, `/llm-wiki` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
+설치가 완료되면 `/onda-slides`, `/product-docs`, `/llm-wiki`, `/gemini-image`, `/ondadrop` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
 
 ## 플러그인 목록
 
@@ -25,6 +27,8 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 | [onda-slides](plugins/onda-slides) | ONDA 공통 템플릿 기반 슬라이드(HTML + PDF) 생성 | `/onda-slides 1분기 매출 보고서` |
 | [product-docs](plugins/product-docs) | ONDA 제품 문서 레포에 문서 생성/업데이트 + PR 자동 생성 | `/product-docs feature 로그인` |
 | [llm-wiki](plugins/llm-wiki) | ONDA LLM Wiki 검색(읽기 전용) — index 기반으로 관련 페이지를 찾아 답변 | `/llm-wiki GBP 최적화 핵심 요소는?` |
+| [gemini-image](plugins/gemini-image) | 마크다운 글의 `[IMAGE]` 블록에서 Gemini API(Nano Banana)로 이미지 생성 | `/gemini-image article.md` |
+| [ondadrop](plugins/ondadrop) | `drop.tport.io`에 정적 사이트(폴더/파일) 배포 — 사내 비공개 URL + 외부 공유 링크 | `/ondadrop ./dist` |
 
 ## 새 플러그인 기여
 
