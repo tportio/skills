@@ -23,6 +23,8 @@
 
 자연어로 호출해도 됩니다 — "이 dist 폴더 사내에 올려줘" → `ondadrop deploy ./dist`.
 
+이미 배포된 사이트는 URL 로 가져올 수도 있습니다 — "이 사이트 drop 으로 가져와줘 https://…" → `ondadrop import <url>`. 자기완결형 HTML 페이지만 지원하며, JavaScript 렌더링이 필요한 동적 사이트(SPA)는 거부됩니다.
+
 ### 배포물 모델
 
 | 항목 | 기본값 | 변경 |
@@ -48,6 +50,7 @@
 ondadrop deploy ./dist --name "마케팅 랜딩 시안"
 ondadrop deploy ./report --expire 30d
 ondadrop deploy index.html
+ondadrop import https://example.com --name "외부 시안"   # 배포된 사이트를 URL로 가져오기
 ```
 
 CI 에서는 `DROP_TOKEN` 환경변수로 토큰을 주입합니다.

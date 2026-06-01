@@ -1,6 +1,6 @@
 ---
 name: ondadrop
-description: drop.tport.io에 정적 사이트(폴더/파일)를 배포한다. ondadrop CLI로 빌드 산출물을 사내 비공개 URL로 올리고, 필요시 공유 링크 발급을 안내. 정적 사이트·빌드 결과·미리보기 공유 요청 시 사용.
+description: drop.tport.io에 정적 사이트(폴더/파일)를 배포한다. ondadrop CLI로 빌드 산출물을 사내 비공개 URL로 올리고, 이미 배포된 사이트는 URL로 가져와(import) 재배포할 수 있다. 필요시 공유 링크 발급을 안내. 정적 사이트·빌드 결과·미리보기 공유 요청 시 사용.
 disable-model-invocation: false
 argument-hint: "<dir|file> [--name 이름] [--expire 14d] [--update id]"
 allowed-tools: Bash, Read, Glob
@@ -34,6 +34,13 @@ allowed-tools: Bash, Read, Glob
 
 5. **외부 공유가 필요하면**: 배포물은 비공개이므로 `drop.tport.io` 목록에서 해당 항목의 "공유 링크"를 발급하라고 안내(로그인 없는 외부 접근용, 기본 7일).
 
+## URL로 가져오기 (import)
+
+이미 배포된 정적 사이트를 주소로 가져와 drop에 올린다: `ondadrop import <url> [--name "이름"] [--expire 30d]`. 성공 시 새 `https://<id>.drop.tport.io` URL을 사용자에게 전달한다.
+
+- **지원**: 자기완결형 HTML 페이지(+ same-origin 정적 자산).
+- **미지원**: JavaScript 렌더링이 필요한 동적 사이트(SPA), 비-HTML 응답, 내부·사설 주소 — "지원하지 않는 형식입니다" 등의 메시지로 거부된다. 거부되면 그 사유를 사용자에게 그대로 전달한다(우회 시도 금지).
+
 ## 예시
 
 ```bash
@@ -41,6 +48,7 @@ ondadrop deploy ./dist --name "마케팅 랜딩 시안"
 ondadrop deploy ./report --expire 30d
 ondadrop deploy index.html
 ondadrop deploy ./dist --update brave-otter-1234   # 같은 URL 갱신
+ondadrop import https://example.com --name "외부 시안"   # 배포된 사이트를 URL로 가져오기
 ```
 
 CI에서는 바이너리를 `/download/cli/<os>/<arch>`로 받고(무인증), `DROP_TOKEN` 환경변수로 토큰을 주입한다.
