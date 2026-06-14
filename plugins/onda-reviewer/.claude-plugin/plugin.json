@@ -1,0 +1,5 @@
+{
+  "name": "onda-reviewer",
+  "description": "onda-reviewer PR 리뷰 봇 운영 도구. regen-context: diff-밖 가시성 컨텍스트 팩(repo별 컨벤션)을 재생성해 오탐을 줄인다.",
+  "version": "1.0.0"
+}

@@ -42,6 +42,13 @@
       "description": "drop.tport.io에 정적 사이트(폴더/파일)를 ondadrop CLI로 배포. 사내 비공개 URL 발급 + 외부 공유 링크 안내.",
       "version": "1.0.0",
       "keywords": ["deploy", "static-site", "cli", "ondadrop", "drop", "onda"]
+    },
+    {
+      "name": "onda-reviewer",
+      "source": "./plugins/onda-reviewer",
+      "description": "onda-reviewer PR 리뷰 봇 운영 도구. regen-context: diff-밖 가시성 컨텍스트 팩(repo별 컨벤션)을 재생성해 리뷰 오탐을 줄인다.",
+      "version": "1.0.0",
+      "keywords": ["onda-reviewer", "code-review", "context", "false-positive", "onda"]
     }
   ]
 }
