@@ -16,9 +16,12 @@ if (!htmlArg) {
   process.exit(1);
 }
 
-const htmlUrl = htmlArg.startsWith('file://') ? htmlArg : `file://${htmlArg}`;
-const htmlPath = htmlArg.replace(/^file:\/\//, '');
-const pdfPath = process.argv[3] || htmlPath.replace(/\.html$/, '.pdf');
+// 상대경로를 그대로 file://에 붙이면 host로 오해돼 ERR_INVALID_URL이 난다 — 항상 절대경로로 정규화.
+const htmlPath = path.resolve(htmlArg.replace(/^file:\/\//, ''));
+const htmlUrl = `file://${htmlPath}`;
+const pdfPath = process.argv[3]
+  ? path.resolve(process.argv[3])
+  : htmlPath.replace(/\.html$/, '.pdf');
 
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();

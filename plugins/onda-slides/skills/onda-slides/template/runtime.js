@@ -10,6 +10,15 @@
    - gen_pdf.mjs도 active 토글 후 __fitContent 호출 → PDF에서도 같은 fix
    - getAvailable()가 .body 자체 vertical padding도 차감 → wide 모드 오버플로우 차단
    - .slide의 display는 CSS @media 분기 안에만 → modifier specificity 함정 차단
+
+   v2.0.8 bug fix:
+   - canvas(차트) 슬라이드는 fit(폰트 축소) 대상에서 제외되는데, .slide가
+     justify-content:center + overflow:hidden이라 콘텐츠(차트+카드 그리드 등)가
+     슬라이드 높이를 넘기면 상하 대칭으로 잘려 헤더(.hbar)까지 가려지는 버그 발견
+     (차트+7카드 조합 실사용에서 재현). 넘칠 때만 상단 정렬(flex-start)로 전환해
+     헤더는 항상 보이고 초과분만 하단에서 잘리게 함. 다만 이 fix는 "안 잘리게"일 뿐
+     "안 좁아 보이게"는 아니므로 — SKILL.md는 애초에 차트 슬라이드를 가볍게 유지하라고
+     계속 안내한다.
    ═══════════════════════════════════════════════════════════════ */
 (function () {
   const slides = document.querySelectorAll('.slide');
@@ -53,8 +62,13 @@
   // 가용 영역 = 슬라이드 height - slide padding(top+bottom) - hbar(height+margin) - body padding(top+bottom)
   // base 변경 시 hbar/padding도 비례 축소되므로 매 iteration마다 재측정.
   function fitContent(slide) {
-    // canvas(차트) 슬라이드는 fit 대상에서 제외 — Chart.js의 px 폰트가 base와 따로 놀아 균형 깨짐
-    if (slide.querySelector('canvas')) return;
+    // canvas(차트) 슬라이드는 폰트 축소는 하지 않는다 — Chart.js의 px 폰트가 base와 따로 놀아 균형 깨짐.
+    // 다만 콘텐츠가 넘치면 justify-content:center 때문에 상하 대칭으로 잘려 헤더까지 가려지므로,
+    // 넘칠 때만 상단 정렬로 전환해 헤더는 항상 보이게 하고 초과분만 하단에서 잘리게 한다.
+    if (slide.querySelector('canvas')) {
+      slide.style.justifyContent = slide.scrollHeight > slide.clientHeight ? 'flex-start' : '';
+      return;
+    }
     const body = slide.querySelector(':scope > .body');
     const fit = ensureFitWrapper(slide);
     if (!body || !fit) return;

@@ -138,14 +138,31 @@ node "${CLAUDE_SKILL_DIR}/build.mjs" <fragment> <output.html> \
 
 ### Phase 4: PDF 생성
 
+npm 의존성(`puppeteer`, `pdf-lib`)은 반드시 **스킬 디렉토리 자체**에 설치한다. `gen_pdf.mjs`는 ESM이라 bare import
+해석이 **스크립트 파일 위치 기준**으로 상위 `node_modules`를 탐색하지, 현재 작업 디렉토리(cwd)는 보지 않는다.
+사용자 프로젝트 repo(cwd)에서 `npm install`하면 (1) import 해석은 여전히 실패하고 (2) 그 repo에 엉뚱한
+`package.json`/`node_modules`만 생성된다(공유 체크아웃이면 특히 사고) — **절대 cwd에서 설치하지 말 것**.
+
 ```bash
-npm ls puppeteer pdf-lib 2>/dev/null || npm install puppeteer pdf-lib
+(cd "${CLAUDE_SKILL_DIR}" && npm ls puppeteer pdf-lib 2>/dev/null || npm install puppeteer pdf-lib)
 node "${CLAUDE_SKILL_DIR}/gen_pdf.mjs" <output.html> [output.pdf]
 ```
 
-`gen_pdf.mjs`는 `<body class="mode-wide">`를 감지해 PDF 페이지 사이즈를 16:9로 자동 전환한다.
+`gen_pdf.mjs`는 `<body class="mode-wide">`를 감지해 PDF 페이지 사이즈를 16:9로 자동 전환한다. 입력 경로는 상대/절대 모두
+안전(내부에서 `path.resolve`로 정규화).
 
-### Phase 5: 완료 보고
+### Phase 5: 시각 검증 (차트/그리드가 많은 덱은 필수)
+
+"Captured slide N/M" 로그는 스크린샷이 **찍혔다**는 뜻이지 **레이아웃이 정상**이라는 뜻이 아니다. 헤더 잘림, 카드
+overflow, 차트 empty-render 같은 문제는 로그에 안 잡히고 PDF를 직접 봐야 드러난다. 특히 canvas(차트)가 들어간
+슬라이드, 또는 카드/표/차트가 한 슬라이드에 몰린 곳은 **PDF를 이미지로 렌더링해 최소 1~2장 직접 확인**한다:
+
+```bash
+pdftoppm -png -f <페이지번호> -l <페이지번호> -r 100 <output.pdf> /tmp/check
+```
+→ 생성된 PNG를 Read 도구로 열어 육안 확인. `pdftoppm` 없으면 `magick`/`qlmanage -t`로 대체.
+
+### Phase 6: 완료 보고
 
 - HTML 경로 / PDF 경로(용량) / 슬라이드 수
 - 브라우저 확인: `file://` URL
@@ -161,9 +178,19 @@ JS fit이 슬라이드별 base font-size를 조정한다.
 
 다만 너무 빽빽하면 글씨가 작아진다. 한 슬라이드에 정보가 정말 많으면 두 슬라이드로 분할이 가독성 좋다.
 
-- 불렛 개수 제한 없음 (단, 7개 넘으면 분할 검토)
+> ⚠️ **"상세하게" ≠ "불렛 문장을 많이 쓰기".** 사용자가 "최대한 상세하게"라고 하면 모델이 흔히 저지르는 실수가
+> 슬라이드마다 완결된 문장 불렛을 4~6개씩 쌓는 것이다 — auto-fit이 있어서 "안 넘치긴" 하지만, 글씨만 빽빽한
+> 슬라이드가 된다. **"상세함"은 정보량이지 문장 개수가 아니다.** 같은 정보를 카드 grid(제목+한두 단어 desc),
+> stat 숫자, flow, 차트로 표현하면 더 상세한 척도(구체적 수치·구조)를 담으면서 글자 수는 오히려 줄어든다.
+> 원칙: **불렛 문장은 최후 수단.** 먼저 "이 내용을 카드/stat/차트/flow로 표현할 수 있나"를 검토하고, 정말
+> 서술형 나열이 아니면 안 되는 내용에만 `.bl`을 쓴다. 카드/표 안의 텍스트도 완결된 문장이 아니라 짧은 구/키워드로.
+
+- 불렛 개수 제한 없음 (단, 7개 넘으면 분할 검토) — 그러나 위 원칙대로 애초에 불렛 대신 카드/차트를 먼저 고려
 - `.g2`, `.g2w`, `.g3`, `.g4` 모두 허용
-- 차트 적극 활용 (차트 슬라이드는 fit 대상 제외 — 모델이 적정 양 조정)
+- **차트(Chart.js) 적극 활용 — 수치가 있는 내용은 문장/표보다 차트를 기본으로 검토.** 비교("A가 B보다 크다"),
+  분포("언어별/카테고리별 비중"), 추이 등은 거의 항상 차트로 더 잘 전달된다. 다만 **차트 슬라이드는 fit 대상에서
+  제외되므로 가볍게 유지** — 차트 하나 + 짧은 캡션 정도가 기본, 카드 grid 같은 별도 무거운 콘텐츠를 같은
+  슬라이드에 같이 넣지 말 것(아래 "Chart.js" 섹션 경고 참고). 필요하면 슬라이드를 분리한다.
 - 표 행 수 제한 없음 (너무 많으면 fit으로 작아짐)
 - **flow / svc-badge / card.featured / bullet variant 적극 활용** — 글씨 나열 대신 시각화. inline HTML/style도 자유
 
@@ -180,6 +207,19 @@ JS fit이 슬라이드별 base font-size를 조정한다.
 7. **한 슬라이드 한 컴포넌트** (불렛/Stat/카드/표/flow 중 하나만)
 8. **flow는 최대 4단계** (5+이면 핵심만 추려 단순화)
 9. **svc-badge / card.featured / bullet variant**는 가독성 도움 → 적극 사용. inline HTML도 OK
+
+## 콘텐츠 구성 팁 (실사용에서 얻은 교훈)
+
+**제품/시스템을 소개하는 덱은 "왜/어디에 쓰이나"를 구조 설명보다 먼저 배치한다.** "이게 뭐냐"고 물으면 모델은
+구조(아키텍처, 컴포넌트 목록)부터 설명하고 싶어 하지만, 청중이 실제로 궁금한 건 보통 "왜 필요한가 / 실제로
+어떤 상황에 쓰이는가"다. 목차 다음 첫 섹션을 문제/동기/사용 시나리오로 잡고, 구조·설계 원칙은 그다음에 온다.
+(구체적 사용 흐름은 `.flow` + 결과 분기를 보여주는 `.g3` 카드 조합이 잘 맞는다.)
+
+**비교 카드("A vs B")를 쓸 때는 실제로 무엇을 비교하는지 스스로 확인한다.** `.card` + `.card.featured` 조합은
+"두 설계 대안 중 하나를 택했다"는 인상을 강하게 준다 — 대안 비교가 맞으면 좋지만, 의도가 그게 아니라 그냥
+"이 시스템은 이렇게 동작한다"는 단일 사실 서술이면 비교 카드는 존재하지 않는 "이전 방식"을 암시해버려
+불필요한 오해를 부른다(예: 리빌드/마이그레이션 히스토리를 다루지 않기로 한 덱에서 "예전엔 이렇게 했음" 식
+카드가 섞여 들어감). 비교 프레이밍이 실제로 필요한 경우로 좁혀서 쓴다.
 
 ## 컴포넌트 마크업 가이드
 
@@ -469,6 +509,14 @@ options: {
 
 차트 컨테이너에 명시적 height (예: `style="height: 360px"`) 필수 — `flex:1`은 print에서 무시됨.
 
+> ⚠️ **차트가 있는 슬라이드는 다른 무거운 콘텐츠와 합치지 말 것.** canvas가 있는 슬라이드는 auto-fit(폰트 축소)
+> 대상에서 통째로 제외된다(`runtime.js`의 `fitContent`가 `slide.querySelector('canvas')`면 즉시 return).
+> 즉 차트 + 카드 grid(특히 7개짜리 `.g4`) 같은 조합을 넣으면 콘텐츠가 슬라이드 높이를 그냥 넘쳐버리고,
+> `.slide`가 `justify-content:center`라 상하 대칭으로 잘려서 **차트가 아니라 헤더(제목)가 위에서 잘리는**
+> 반직관적인 버그로 나타난다(v2.0.8 이전 실사용에서 재현·확인됨). v2.0.8부터 넘칠 때 자동으로 상단 정렬로
+> 전환해 헤더 잘림은 막지만, 그래도 차트가 좁게 눌리는 건 못 막는다 — 애초에 **차트 슬라이드는 차트 하나 +
+> 짧은 캡션/제목 정도로 가볍게 유지**하고, 카드 grid 등 별도 콘텐츠는 다른 슬라이드로 분리한다.
+
 ## AI 이미지 (Gemini)
 
 `GEMINI_API_KEY`가 환경변수 또는 `.env`에 있을 때:
@@ -540,14 +588,19 @@ gh api repos/{owner}/{repo}/contents/{path} --jq '.content' | base64 -d
 | 차트 컨테이너 height 명시 | `style="height: 360px"` |
 | Chart.js `animation.duration: 0` | PDF 캡처 시 빈 차트 방지 |
 | Chart.js `autoSkip: false` | 수평 바 라벨 자동 생략 방지 |
+| 차트 슬라이드는 가볍게 | canvas 슬라이드는 auto-fit 제외 — 카드 grid 등 무거운 콘텐츠와 합치면 넘침/헤더 잘림. 차트+캡션만 |
+| 불렛 문장 나열이 기본값이 되지 않게 | "상세하게"는 문장 수가 아니라 정보량. 카드/stat/차트를 먼저 검토하고 `.bl`은 최후 수단 |
+| npm install은 스킬 디렉토리에서 | `(cd "${CLAUDE_SKILL_DIR}" && npm install ...)` — cwd에서 하면 ESM 해석 실패 + 사용자 repo 오염 |
+| PDF 생성 후 시각 검증 | `pdftoppm`으로 최소 1~2장 PNG 렌더링해 Read로 직접 확인 (특히 차트/카드 밀집 슬라이드) |
 | simple 모드 콘텐츠 룰 | 불렛 3개, `.g2`만, 한 메시지/슬라이드, 1줄 25자 |
 | en 모드 폰트 | `build.mjs`가 자동으로 Inter CDN link 추가 |
 | wide 모드 PDF | `gen_pdf.mjs`가 자동 16:9 페이지 |
 
 ## Error handling
 
-- puppeteer/pdf-lib 미설치 → `npm install puppeteer pdf-lib`
+- puppeteer/pdf-lib 미설치 → `(cd "${CLAUDE_SKILL_DIR}" && npm install puppeteer pdf-lib)` — **cwd가 아니라 스킬 디렉토리에서** 설치 (ESM은 스크립트 위치 기준으로 모듈을 찾는다)
 - 차트 빈 채로 캡처 → `animation.duration: 0` + 대기 시간 증가
+- 차트 슬라이드에서 헤더가 위쪽에서 잘림 → 같은 슬라이드에 카드 grid 등이 같이 있는지 확인, 있으면 분리 (v2.0.8부터 자동 완화되지만 근본 해법은 분리)
 - SVG 로고 렌더링 실패 → PNG로 변환
 - GitHub private repo 접근 불가 → `gh auth status`
 - Pretendard 미로드 → CDN URL 확인, `networkidle0` 대기
