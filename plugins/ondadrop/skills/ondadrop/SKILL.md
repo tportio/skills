@@ -1,6 +1,6 @@
 ---
 name: ondadrop
-description: drop.tport.io에 정적 사이트(폴더/파일)를 배포한다. ondadrop CLI로 빌드 산출물을 사내 비공개 URL로 올리고, 이미 배포된 사이트는 URL로 가져와(import) 재배포할 수 있다. 필요시 공유 링크 발급을 안내. 정적 사이트·빌드 결과·미리보기 공유 요청 시 사용.
+description: drop.tport.io에 정적 사이트(폴더/파일)를 배포한다. ondadrop CLI로 빌드 산출물을 사내 비공개 URL로 올리고, 이미 배포된 사이트는 URL로 가져와(import) 재배포하며, 배포물의 파일을 로컬로 내려받을(get) 수 있다. 필요시 공유 링크 발급을 안내. 정적 사이트·빌드 결과·미리보기 공유 요청 시 사용.
 disable-model-invocation: false
 argument-hint: "<dir|file> [--name 이름] [--expire 14d] [--update id]"
 allowed-tools: Bash, Read, Glob
@@ -41,6 +41,14 @@ allowed-tools: Bash, Read, Glob
 - **지원**: 자기완결형 HTML 페이지(+ same-origin 정적 자산).
 - **미지원**: JavaScript 렌더링이 필요한 동적 사이트(SPA), 비-HTML 응답, 내부·사설 주소 — "지원하지 않는 형식입니다" 등의 메시지로 거부된다. 거부되면 그 사유를 사용자에게 그대로 전달한다(우회 시도 금지).
 
+## 배포물 내려받기 (get)
+
+배포물의 파일을 로컬로 받는다: `ondadrop get <id|url> [--out <dir>]`. 인자는 배포 id(`brave-otter-1234`) 또는 그 URL(`https://brave-otter-1234.drop.tport.io/...`) 둘 다 된다. 기본 저장 위치는 `./<id>`.
+
+- `deploy`의 역방향이므로, 받은 폴더를 고쳐 `ondadrop deploy <dir> --update <id>`로 같은 URL에 되올릴 수 있다.
+- 배포 메타(`.drop-meta.json`)와 공유 링크 정보는 포함되지 않는다 — 서빙되는 파일만.
+- 없는 id는 404, 형식이 잘못된 id는 요청 전에 CLI가 거부한다.
+
 ## 예시
 
 ```bash
@@ -49,6 +57,8 @@ ondadrop deploy ./report --expire 30d
 ondadrop deploy index.html
 ondadrop deploy ./dist --update brave-otter-1234   # 같은 URL 갱신
 ondadrop import https://example.com --name "외부 시안"   # 배포된 사이트를 URL로 가져오기
+ondadrop get brave-otter-1234                      # 배포물을 ./brave-otter-1234로 내려받기
+ondadrop get https://brave-otter-1234.drop.tport.io --out ./site
 ```
 
 CI에서는 바이너리를 `/download/cli/<os>/<arch>`로 받고(무인증), `DROP_TOKEN` 환경변수로 토큰을 주입한다.
