@@ -16,6 +16,7 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 /plugin install llm-wiki@tport-skills
 /plugin install gemini-image@tport-skills
 /plugin install ondadrop@tport-skills
+/plugin install aws-cost-ledger-entry@tport-skills
 ```
 
 설치가 완료되면 `/onda-slides`, `/product-docs`, `/llm-wiki`, `/gemini-image`, `/ondadrop` 같은 슬래시 명령으로 스킬을 바로 사용할 수 있습니다.
@@ -29,6 +30,7 @@ Claude Code에서 아래 명령을 순서대로 실행하세요.
 | [llm-wiki](plugins/llm-wiki) | ONDA LLM Wiki 검색(읽기 전용) — index 기반으로 관련 페이지를 찾아 답변 | `/llm-wiki GBP 최적화 핵심 요소는?` |
 | [gemini-image](plugins/gemini-image) | 마크다운 글의 `[IMAGE]` 블록에서 Gemini API(Nano Banana)로 이미지 생성 | `/gemini-image article.md` |
 | [ondadrop](plugins/ondadrop) | `drop.tport.io`에 정적 사이트(폴더/파일) 배포 — 사내 비공개 URL + 외부 공유 링크 | `/ondadrop ./dist` |
+| [aws-cost-ledger-entry](plugins/aws-cost-ledger-entry) | 신규 AWS 자원 생성·확장 시 비용 대장에 대상·목적·예상 비용·ARN·태그 기재 | 인프라 작업 중 자동 실행 |
 
 ## 새 플러그인 기여
 
