@@ -52,6 +52,7 @@ RDS 스토리지 500GB 로 늘려야 할 것 같은데
   `create-internet-gateway`·`create-db-subnet-group`·`create-db-(cluster-)parameter-group`·
   `create-cache-subnet-group`·`create-cache-parameter-group`·`create-target-group`·`create-listener`·
   `create-rule`·`create-log-stream`
+- 자격증명 생성: `create-token`·`create-login-profile`·`create-access-key`
 - `iam`·`sts`·`sso`·`sso-oidc`·`organizations` 서비스, `--dry-run`·`help`, `terraform plan`·`apply -destroy`
 - 실패한 명령
 
