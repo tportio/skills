@@ -212,10 +212,10 @@ def _program_and_args(words):
     return words[i].rsplit("/", 1)[-1], words[i + 1:]
 
 
-def _positional(args, value_options):
+def _positional_indices(args, value_options):
     out = []
     skip = False
-    for a in args:
+    for n, a in enumerate(args):
         if skip:
             skip = False
             continue
@@ -223,18 +223,22 @@ def _positional(args, value_options):
             if a in value_options:
                 skip = True
             continue
-        out.append(a)
+        out.append(n)
     return out
+
+
+def _positional(args, value_options):
+    return [args[n] for n in _positional_indices(args, value_options)]
 
 
 def _is_aws_growth(args):
     if "--dry-run" in args:
         return False
-    pos = _positional(args, AWS_GLOBAL_VALUE_OPTIONS)
-    if len(pos) < 2:
+    idx = _positional_indices(args, AWS_GLOBAL_VALUE_OPTIONS)
+    if len(idx) < 2:
         return False
-    service, operation = pos[0], pos[1]
-    if args[args.index(operation) + 1:] == ["help"]:
+    service, operation = args[idx[0]], args[idx[1]]
+    if args[idx[1] + 1:] == ["help"]:
         return False
     if service in AWS_EXCLUDED_SERVICES or operation in AWS_EXCLUDED_OPERATIONS:
         return False

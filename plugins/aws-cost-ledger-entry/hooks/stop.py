@@ -1,6 +1,6 @@
+import hashlib
 import json
 import os
-import re
 import sys
 import time
 from pathlib import Path
@@ -8,21 +8,29 @@ from pathlib import Path
 from ledger_patterns import creation_commands, is_ledger_post
 
 STATE_RETENTION_SECONDS = 30 * 24 * 3600
-SAFE_SESSION_ID = re.compile(r"[^A-Za-z0-9_-]")
+
+
+def _sha(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def _blocks(entry, kind):
-    content = (entry.get("message") or {}).get("content")
+    message = entry.get("message")
+    content = message.get("content") if isinstance(message, dict) else None
     if not isinstance(content, list):
         return []
     return [b for b in content if isinstance(b, dict) and b.get("type") == kind]
 
 
 def unrecorded_creations(transcript_path):
-    """(tool_use_id, command) pairs that ran successfully after the last ledger POST."""
+    """(key, command) pairs that ran successfully after the last ledger POST.
+
+    key is the tool_use id, or a hash of the command when the block has no id.
+    """
     calls = []
     failed = set()
-    with open(transcript_path, encoding="utf-8") as f:
+    # errors="replace": one undecodable byte must not skip the whole transcript.
+    with open(transcript_path, encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
                 entry = json.loads(line)
@@ -43,13 +51,15 @@ def unrecorded_creations(transcript_path):
                 if is_ledger_post(command):
                     calls = []
                     continue
+                tool_use_id = block.get("id")
                 for segment in creation_commands(command):
-                    calls.append((block.get("id"), segment))
-    return [(i, c) for i, c in calls if i not in failed]
+                    key = tool_use_id if isinstance(tool_use_id, str) else f"cmd:{_sha(segment)}"
+                    calls.append((key, tool_use_id, segment))
+    return [(k, c) for k, i, c in calls if i is None or i not in failed]
 
 
 def _state_file(session_id):
-    """Per-session record of already-blocked tool_use ids, or None when there is no data dir."""
+    """Per-session record of already-blocked keys, or None when there is no data dir."""
     data = os.environ.get("CLAUDE_PLUGIN_DATA")
     if not data:
         return None
@@ -62,8 +72,7 @@ def _state_file(session_id):
                 old.unlink()
         except FileNotFoundError:
             pass
-    safe_id = SAFE_SESSION_ID.sub("-", str(session_id))
-    return data_dir / f"stop-blocked-{safe_id}.json"
+    return data_dir / f"stop-blocked-{_sha(str(session_id))[:32]}.json"
 
 
 def _read_state(state):
@@ -75,10 +84,19 @@ def _read_state(state):
 
 
 def main():
-    payload = json.load(sys.stdin)
-    if payload.get("stop_hook_active"):
+    try:
+        payload = json.load(sys.stdin)
+    except ValueError:
         return
-    pending = unrecorded_creations(payload["transcript_path"])
+    if not isinstance(payload, dict) or payload.get("stop_hook_active"):
+        return
+    transcript_path = payload.get("transcript_path")
+    if not isinstance(transcript_path, str):
+        return
+    try:
+        pending = unrecorded_creations(transcript_path)
+    except OSError:
+        return
     if not pending:
         return
 
@@ -90,7 +108,7 @@ def main():
     if not fresh:
         return
     if state:
-        state.write_text(json.dumps(sorted(already | {i for i, _ in fresh if isinstance(i, str)})))
+        state.write_text(json.dumps(sorted(already | {k for k, _ in fresh})))
 
     listed = "\n".join(f"- {c[:200]}" for _, c in fresh)
     reason = (

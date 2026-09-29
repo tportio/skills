@@ -5,8 +5,14 @@ from ledger_patterns import creation_commands
 
 
 def main():
-    payload = json.load(sys.stdin)
-    command = (payload.get("tool_input") or {}).get("command", "")
+    try:
+        payload = json.load(sys.stdin)
+    except ValueError:
+        return
+    tool_input = payload.get("tool_input") if isinstance(payload, dict) else None
+    command = tool_input.get("command") if isinstance(tool_input, dict) else None
+    if not isinstance(command, str):
+        return
     found = creation_commands(command)
     if not found:
         return

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import subprocess
 import sys
@@ -16,13 +17,18 @@ LEDGER_POST = (
 )
 
 
-def run_hook(script, payload, data_dir):
+def state_path(data_dir, session_id):
+    digest = hashlib.sha256(str(session_id).encode("utf-8")).hexdigest()[:32]
+    return Path(data_dir) / f"stop-blocked-{digest}.json"
+
+
+def run_hook(script, payload, data_dir, raw_stdin=None):
     env = {"PATH": "/usr/bin:/bin"}
     if data_dir is not None:
         env["CLAUDE_PLUGIN_DATA"] = data_dir
     proc = subprocess.run(
         [sys.executable, "-B", str(HOOKS / script)],
-        input=json.dumps(payload),
+        input=json.dumps(payload) if raw_stdin is None else raw_stdin,
         capture_output=True,
         text=True,
         env=env,
@@ -31,13 +37,14 @@ def run_hook(script, payload, data_dir):
     return json.loads(proc.stdout) if proc.stdout.strip() else None
 
 
-def write_transcript(path, commands, failed=()):
+def write_transcript(path, commands, failed=(), with_ids=True):
     with open(path, "w", encoding="utf-8") as f:
         for n, command in enumerate(commands):
             tool_id = f"toolu_{n}"
-            f.write(json.dumps({"type": "assistant", "message": {"content": [
-                {"type": "tool_use", "id": tool_id, "name": "Bash", "input": {"command": command}},
-            ]}}) + "\n")
+            tool_use = {"type": "tool_use", "name": "Bash", "input": {"command": command}}
+            if with_ids:
+                tool_use["id"] = tool_id
+            f.write(json.dumps({"type": "assistant", "message": {"content": [tool_use]}}) + "\n")
             f.write(json.dumps({"type": "user", "message": {"content": [
                 {"type": "tool_result", "tool_use_id": tool_id, "is_error": command in failed,
                  "content": "Exit code 1" if command in failed else "ok"},
@@ -160,6 +167,13 @@ class CreationCommandsTest(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(creation_commands(command), [])
 
+    def test_help_is_judged_at_the_operation_position(self):
+        self.assertEqual(creation_commands("aws ec2 --output create-volume create-volume help"), [])
+        self.assertEqual(
+            creation_commands("aws ec2 create-volume --description help"),
+            ["aws ec2 create-volume --description help"],
+        )
+
     def test_chained_command_reports_each_segment(self):
         command = "aws ec2 create-volume --size 100 && aws ec2 create-tags --resources v && terraform apply"
         self.assertEqual(
@@ -192,6 +206,11 @@ class PostToolUseHookTest(unittest.TestCase):
             "tool_input": {"command": "aws ec2 describe-instances"},
         }, self.data)
         self.assertIsNone(out)
+
+    def test_malformed_stdin_emits_nothing(self):
+        self.assertIsNone(run_hook("post_tool_use.py", None, self.data, raw_stdin="{not json"))
+        self.assertIsNone(run_hook("post_tool_use.py", None, self.data, raw_stdin="[]"))
+        self.assertIsNone(run_hook("post_tool_use.py", {"tool_input": "x"}, self.data))
 
 
 class StopHookTest(unittest.TestCase):
@@ -262,19 +281,58 @@ class StopHookTest(unittest.TestCase):
         self.assertEqual(out["decision"], "block")
         self.assertIn("allocate-address", out["reason"])
 
+    def test_non_utf8_bytes_do_not_hide_creates(self):
+        write_transcript(self.transcript, ["aws ec2 allocate-address"])
+        with open(self.transcript, "ab") as f:
+            f.write(b'{"message": {"content": [{"type": "text", "text": "\xff\xfe"}]}}\n')
+        out = self.stop()
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("allocate-address", out["reason"])
+
+    def test_non_dict_message_is_skipped(self):
+        write_transcript(self.transcript, ["aws ec2 allocate-address"])
+        with open(self.transcript, "a", encoding="utf-8") as f:
+            f.write('{"message": "plain string"}\n{"message": ["list"]}\n')
+        out = self.stop()
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("allocate-address", out["reason"])
+
     def test_corrupt_state_file_is_reset(self):
         write_transcript(self.transcript, ["terraform apply"])
-        (Path(self.data) / "stop-blocked-s1.json").write_text("{corrupt")
+        state_path(self.data, "s1").write_text("{corrupt")
         self.assertEqual(self.stop()["decision"], "block")
-        self.assertEqual(
-            json.loads((Path(self.data) / "stop-blocked-s1.json").read_text()), ["toolu_0"],
-        )
+        self.assertEqual(json.loads(state_path(self.data, "s1").read_text()), ["toolu_0"])
         self.assertIsNone(self.stop())
 
     def test_non_string_session_id(self):
         write_transcript(self.transcript, ["terraform apply"])
         self.assertEqual(self.stop(session=12345)["decision"], "block")
-        self.assertTrue((Path(self.data) / "stop-blocked-12345.json").exists())
+        self.assertTrue(state_path(self.data, 12345).exists())
+
+    def test_session_ids_that_sanitise_alike_do_not_share_state(self):
+        write_transcript(self.transcript, ["terraform apply"])
+        self.assertEqual(self.stop(session="a.b")["decision"], "block")
+        self.assertEqual(self.stop(session="a/b")["decision"], "block")
+        self.assertNotEqual(state_path(self.data, "a.b"), state_path(self.data, "a/b"))
+
+    def test_id_less_tool_use_blocks_once(self):
+        write_transcript(self.transcript, ["terraform apply"], with_ids=False)
+        self.assertEqual(self.stop()["decision"], "block")
+        self.assertIsNone(self.stop())
+        stored = json.loads(state_path(self.data, "s1").read_text())
+        self.assertEqual(len(stored), 1)
+        self.assertTrue(stored[0].startswith("cmd:"))
+
+    def test_missing_transcript_path_allows(self):
+        out = run_hook("stop.py", {"hook_event_name": "Stop", "session_id": "s1"}, self.data)
+        self.assertIsNone(out)
+
+    def test_unreadable_transcript_allows(self):
+        self.transcript = str(Path(self.data) / "does-not-exist.jsonl")
+        self.assertIsNone(self.stop())
+
+    def test_malformed_stdin_allows(self):
+        self.assertIsNone(run_hook("stop.py", None, self.data, raw_stdin="{not json"))
 
     def test_missing_plugin_data_still_blocks(self):
         write_transcript(self.transcript, ["terraform apply"])
