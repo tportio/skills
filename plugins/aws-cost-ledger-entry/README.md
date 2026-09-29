@@ -28,6 +28,46 @@ RDS 스토리지 500GB 로 늘려야 할 것 같은데
 작성자·환경·대상·목적·시점·예상 비용·ARN·태그를 채워 기재합니다.
 환경(prd/dev)을 대화에서 알 수 없으면 한 번 물어봅니다.
 
+## 자동 강제 (hook)
+
+플러그인을 설치하면 hook 두 개가 같이 켜집니다. 따로 등록할 것 없습니다.
+
+- **PostToolUse**: Claude 가 생성·확장 명령을 실행하면, 바로 이 스킬을 쓰라고 Claude 에게 알립니다.
+- **Stop**: 대장 기재 없이 턴을 끝내려 하면 한 번 막고 기재를 요구합니다. 같은 명령으로는 두 번 막지 않습니다.
+
+감지하는 명령:
+
+- `aws` 의 `create-*`·`allocate-*`·`restore-db-*`·`run-instances`·`request-spot-instances`
+- `aws` 의 확장 명령: `modify-db-instance`·`modify-db-cluster`·`modify-volume`·`modify-instance-attribute`·
+  `modify-cache-cluster`·`modify-replication-group`·`increase-replica-count`·`update-nodegroup-config`·
+  `set-desired-capacity`·`update-auto-scaling-group`·`update-broker-storage`·`update-broker-type`·
+  `opensearch update-domain-config`·`es update-elasticsearch-domain-config`·`ecs update-service --desired-count`
+- `eksctl create`·`eksctl scale`, `terraform apply`·`tofu apply`
+- `$(...)`·`bash -c`·`ssh host '...'`·`for/if` 안의 명령도 봅니다. 따옴표 안 문자열과 heredoc 본문은 보지 않습니다.
+
+감지하지 않는 명령:
+
+- 그 자체로 비용이 없는 생성: `create-tags`·`create-security-group`·`create-key-pair`·`create-launch-template(-version)`·
+  `create-placement-group`·`create-network-acl(-entry)`·`create-route-table`·`create-route`·`create-subnet`·
+  `create-internet-gateway`·`create-db-subnet-group`·`create-db-(cluster-)parameter-group`·
+  `create-cache-subnet-group`·`create-cache-parameter-group`·`create-target-group`·`create-listener`·
+  `create-rule`·`create-log-stream`
+- 자격증명 생성: `create-token`·`create-login-profile`·`create-access-key`
+- `iam`·`sts`·`sso`·`sso-oidc`·`organizations` 서비스, `--dry-run`·`help`, `terraform plan`·`apply -destroy`
+- 실패한 명령
+
+알아둘 것:
+
+- Claude 가 실행한 명령만 보입니다. 콘솔 작업이나 Claude 밖에서 돌린 `terraform apply` 는 감지하지 못합니다.
+- 대장 POST 가 한 번 나가면 그 전의 생성 명령은 모두 기재된 것으로 봅니다. POST 가 실패해도 마찬가지입니다.
+- `python3` 가 PATH 에 있어야 합니다. 없으면 hook 이 오류를 내고 강제가 동작하지 않습니다.
+
+감지 규칙은 `hooks/ledger_patterns.py` 에 있습니다. 테스트는 레포 루트에서 이렇게 돌립니다.
+
+```
+python3 -B -m unittest discover -s plugins/aws-cost-ledger-entry/tests -p 'test_*.py'
+```
+
 ## 참고
 
 - 기재는 대장 시트에 붙은 Apps Script 웹훅으로 합니다. 코드는 `apps-script.gs` 에 사본이 있고, 정본은 시트입니다.
