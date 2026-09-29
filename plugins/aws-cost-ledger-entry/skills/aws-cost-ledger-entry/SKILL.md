@@ -21,7 +21,7 @@ description: 신규 AWS 인프라를 만들거나 기존 인프라를 확장할 
 | `when` | `YYYY-MM-DD`. 작업 전이면 예정일, 후면 적용일 |
 | `delta` | 월 USD + 산정 근거. **모르면 비운다** — 지어낸 숫자가 빈칸보다 나쁘다 |
 | `arn` | 만든 자원의 ARN. 여러 개면 쉼표로. 아직 안 만들었으면 비운다 |
-| `tags` | 붙인 태그를 `키=값` 쉼표 구분으로. 예: `Billing=shared,Name=eks-onda-dev` |
+| `tags` | 붙인 태그를 `키=값` 쉼표 구분으로. 예: `Service=shared,Name=eks-onda-dev` |
 
 작성자는 이 명령을 실제로 실행해서 얻는다. 추측하거나 대화 맥락에서 유추하지 않는다.
 
@@ -42,15 +42,28 @@ ARN 이 있으면 **"이 자원이 왜 생겼는지" 가 문자열 매칭으로 
 
 ### 태그
 
-붙일 태그는 최소 이 둘이다.
+붙일 태그는 이 둘이다. 둘 다 필수다.
 
 | 키 | 값 |
 |---|---|
-| `Billing` | `commission` / `subscription` / `shared` |
+| `Service` | 아래 목록 중 하나. **소문자 그대로** |
 | `Name` | 사람이 알아볼 이름 |
 
-`Billing` 은 수수료·구독·공유 중 무엇의 비용인지다. 판단이 안 서면 `shared` 로 두고
-`tags` 에 그대로 적는다 — 대장에 남아 있으면 나중에 고칠 수 있다.
+`Service` 값은 이 목록에서만 고른다.
+
+```
+hub  pplus  cms  bko  osp  common  security  observability  data  shared
+```
+
+- 비용이 실제로 갈리는 경계에서 나눈다. 전용 DB·노드·ELB 가 있으면 그 서비스 값
+- 여러 서비스가 같이 쓰는 자원(EKS 노드·MSK·멀티테넌트 DB)은 `shared`
+- `common` 은 계약·정산·알림 같은 공통 서비스 자체다. 공유 자원이라는 뜻이 아니다
+
+**목록에 맞는 게 없으면 지어내지 말고 비운다.** 빈 값은 나중에 채우면 되지만, 틀린 값은
+아무도 고치지 않는다. 기존 `Service` 태그에 `Securiuty` 오타가 박혀 있는 게 그 결과다.
+비웠으면 대장 `note` 에 이유를 적는다.
+
+대소문자를 바꾸면 비용 데이터에서 다른 값으로 따로 잡힌다(`Security` ≠ `security`).
 
 **붙이는 위치를 틀리면 태그가 조용히 사라진다.**
 
@@ -102,7 +115,7 @@ curl -s -o /dev/null -w "%{http_code}" --max-time 15 --connect-timeout 5 -X POST
 { "by": "<작성자>", "env": "<prd 또는 dev>", "target": "<대상>",
   "purpose": "<목적 한 문장>", "when": "<YYYY-MM-DD>",
   "delta": "<월 $N (근거)>", "note": "",
-  "arn": "<리소스 ARN, 여러 개면 쉼표>", "tags": "<Billing=...,Name=...>" }
+  "arn": "<리소스 ARN, 여러 개면 쉼표>", "tags": "<Service=...,Name=...>" }
 JSON
 )"
 ```

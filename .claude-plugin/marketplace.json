@@ -54,7 +54,7 @@
       "name": "aws-cost-ledger-entry",
       "source": "./plugins/aws-cost-ledger-entry",
       "description": "신규 AWS 자원 생성·확장 시 비용 대장에 대상·목적·예상 비용·ARN·태그를 자동 기재",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "keywords": ["aws", "cost", "billing", "infra", "onda"]
     }
   ]
