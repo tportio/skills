@@ -21,7 +21,7 @@ description: 신규 AWS 인프라를 만들거나 기존 인프라를 확장할 
 | `when` | `YYYY-MM-DD`. 작업 전이면 예정일, 후면 적용일 |
 | `delta` | 월 USD + 산정 근거. **모르면 비운다** — 지어낸 숫자가 빈칸보다 나쁘다 |
 | `arn` | 만든 자원의 ARN. 여러 개면 쉼표로. 아직 안 만들었으면 비운다 |
-| `tags` | 붙인 태그를 `키=값` 쉼표 구분으로. 예: `Service=shared,Name=eks-onda-dev` |
+| `tags` | 붙인 태그를 `키=값` 쉼표 구분으로. 예: `Service=shared,Billing=shared,Name=shared-eks-node-dev` |
 
 작성자는 이 명령을 실제로 실행해서 얻는다. 추측하거나 대화 맥락에서 유추하지 않는다.
 
@@ -42,12 +42,13 @@ ARN 이 있으면 **"이 자원이 왜 생겼는지" 가 문자열 매칭으로 
 
 ### 태그
 
-붙일 태그는 이 둘이다. 둘 다 필수다.
+붙일 태그는 이 셋이다. 셋 다 필수다.
 
-| 키 | 값 |
-|---|---|
-| `Service` | 아래 목록 중 하나. **소문자 그대로** |
-| `Name` | 사람이 알아볼 이름 |
+| 키 | 값 | 누가 정하나 |
+|---|---|---|
+| `Service` | 아래 목록 중 하나. **소문자 그대로** | 사용자와 함께 판단 |
+| `Billing` | `Service` 에서 아래 표로 정해진다 | 자동 |
+| `Name` | `<service>-<용도>-<env>` | 제안하고 사용자가 확인 |
 
 `Service` 값은 이 목록에서만 고른다.
 
@@ -64,6 +65,23 @@ hub  pplus  cms  bko  osp  common  security  observability  data  shared
 비웠으면 대장 `note` 에 이유를 적는다.
 
 대소문자를 바꾸면 비용 데이터에서 다른 값으로 따로 잡힌다(`Security` ≠ `security`).
+
+**`Billing`** 은 어느 사업모델의 비용인지다. 사용자에게 묻지 말고 `Service` 로 정한다.
+
+| Service | Billing |
+|---|---|
+| `hub` `osp` `bko` `pplus` | `commission` |
+| `cms` | `subscription` |
+| `common` `security` `observability` `data` `shared` | `shared` |
+
+`Service` 를 비웠으면 `Billing` 도 비운다.
+
+**`Name`** 은 AWS 콘솔 목록과 비용 데이터에 표시되는 이름이다.
+`<service>-<용도>-<env>` 로, 소문자와 하이픈만 쓴다.
+예: `pplus-rds-prd`, `hub-redis-prd`, `shared-eks-node-prd`, `security-wazuh-prd`.
+
+**기존 자원의 `Name` 은 바꾸지 않는다.** 스크립트·알람·문서가 이름으로 자원을 찾는
+경우가 있어서, 바꾸면 조용히 깨진다. 이 규칙은 새로 만드는 자원에만 쓴다.
 
 **붙이는 위치를 틀리면 태그가 조용히 사라진다.**
 
@@ -115,7 +133,7 @@ curl -s -o /dev/null -w "%{http_code}" --max-time 15 --connect-timeout 5 -X POST
 { "by": "<작성자>", "env": "<prd 또는 dev>", "target": "<대상>",
   "purpose": "<목적 한 문장>", "when": "<YYYY-MM-DD>",
   "delta": "<월 $N (근거)>", "note": "",
-  "arn": "<리소스 ARN, 여러 개면 쉼표>", "tags": "<Service=...,Name=...>" }
+  "arn": "<리소스 ARN, 여러 개면 쉼표>", "tags": "<Service=...,Billing=...,Name=...>" }
 JSON
 )"
 ```
