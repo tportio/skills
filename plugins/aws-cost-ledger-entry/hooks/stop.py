@@ -119,7 +119,7 @@ def main():
         "aws-cost-ledger-entry 스킬로 지금 기재한다. 자원이 실제로 생기지 않았으면 "
         "그 이유를 한 줄로 사용자에게 알리고 끝낸다."
     )
-    json.dump({"decision": "block", "reason": reason}, sys.stdout, ensure_ascii=False)
+    json.dump({"decision": "block", "reason": reason}, sys.stdout, ensure_ascii=True)
 
 
 if __name__ == "__main__":

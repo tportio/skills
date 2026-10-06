@@ -309,20 +309,36 @@ def is_ledger_post(command):
 
 TAGS_FIELD = re.compile(r'"tags"\s*:\s*"([^"]*)"')
 REPO_PAIR = re.compile(r"(?:^|,)\s*Repo\s*=\s*([^,]*)")
+# GitHub repository names: letters, digits, '.', '_', '-'. Rejects '...', '-', '?', '<...>'.
+REPO_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+# Words a blocked model might reach for instead of asking who owns the resource.
+EVASIVE_REPOS = {"unknown", "tbd", "todo", "none", "null", "na", "n/a", "repo"}
+
+
+def _repo_value_problem(value):
+    if not value or not REPO_NAME.match(value):
+        return "tags 에 Repo=<레포 이름> 이 없다"
+    if value.lower() == "unmanaged":
+        return "Repo=unmanaged 는 기존 자원 조사용 표시라 새로 만들거나 늘린 자원에는 쓸 수 없다"
+    if value.lower() in EVASIVE_REPOS:
+        return f"Repo={value} 는 레포 이름이 아니다"
+    return None
 
 
 def ledger_repo_problem(command):
     """Why a ledger POST may not go out for lack of a Repo tag, or None when it is fine.
 
     The ledger is append-only, so a row without Repo has to be stopped before it is sent.
+    Every "tags" field and every Repo= pair is checked, so a second POST or a duplicate key
+    cannot slip an empty or evasive value past the first good one.
     """
-    field = TAGS_FIELD.search(command or "")
-    if not field:
+    fields = TAGS_FIELD.findall(command or "")
+    if not fields:
         return "보내는 내용에서 \"tags\" 필드를 찾지 못했다. 스킬의 기재 명령처럼 본문을 명령 안에 그대로 넣어 보낸다"
-    pair = REPO_PAIR.search(field.group(1))
-    value = pair.group(1).strip() if pair else ""
-    if not value or value.startswith("<"):
-        return "tags 에 Repo=<레포 이름> 이 없다"
-    if value.lower() == "unmanaged":
-        return "Repo=unmanaged 는 기존 자원 조사용 표시라 새로 만들거나 늘린 자원에는 쓸 수 없다"
+    for field in fields:
+        values = [v.strip() for v in REPO_PAIR.findall(field)] or [""]
+        for value in values:
+            problem = _repo_value_problem(value)
+            if problem:
+                return problem
     return None

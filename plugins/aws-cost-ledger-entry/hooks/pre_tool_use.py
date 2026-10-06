@@ -29,7 +29,7 @@ def main():
             "permissionDecisionReason": reason,
         }},
         sys.stdout,
-        ensure_ascii=False,
+        ensure_ascii=True,
     )
 
 

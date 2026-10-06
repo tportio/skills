@@ -208,8 +208,20 @@ class LedgerRepoTest(unittest.TestCase):
 
     def test_missing_or_placeholder_repo_is_a_problem(self):
         for tags in ("Service=hub,Billing=commission", "Repo=,Service=hub", "",
-                     "<Service=...,Billing=...,Name=...>", "Repo=<레포>,Service=hub", "NotRepo=hub"):
+                     "<Service=...,Billing=...,Name=...>", "Repo=<레포>,Service=hub", "NotRepo=hub",
+                     "Repo=...,Service=hub", "Repo=-", "Repo=?", "Repo=unknown", "Repo=TBD", "Repo=None",
+                     "Repo=n/a", "Repo=hub app"):
             self.assertIn("Repo", ledger_repo_problem(ledger_post_with_tags(tags)), tags)
+
+    def test_every_repo_pair_and_tags_field_is_checked(self):
+        self.assertIn("unmanaged", ledger_repo_problem(ledger_post_with_tags("Repo=hub,Repo=unmanaged")))
+        two_posts = ledger_post_with_tags("Repo=hub") + " && " + ledger_post_with_tags("Service=hub")
+        self.assertIn("Repo", ledger_repo_problem(two_posts))
+        self.assertIsNone(ledger_repo_problem(ledger_post_with_tags("Repo=hub") + " && " + ledger_post_with_tags("Repo=infra")))
+
+    def test_real_repo_names_pass(self):
+        for name in ("infra", "gds-app", "global.onda.me", "pension-plus-core", "lambda-function", "misc", "WAVE_Android"):
+            self.assertIsNone(ledger_repo_problem(ledger_post_with_tags(f"Repo={name},Service=hub")), name)
 
     def test_unmanaged_is_a_problem(self):
         self.assertIn("unmanaged", ledger_repo_problem(ledger_post_with_tags("Repo=unmanaged,Service=hub")))

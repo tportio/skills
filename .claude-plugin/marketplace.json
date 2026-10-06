@@ -53,7 +53,7 @@
     {
       "name": "aws-cost-ledger-entry",
       "source": "./plugins/aws-cost-ledger-entry",
-      "description": "신규 AWS 자원 생성·확장 시 비용 대장에 대상·목적·예상 비용·ARN·태그를 자동 기재. 생성 명령을 hook 이 감지해 기재를 강제",
+      "description": "신규 AWS 자원 생성·확장 시 비용 대장에 대상·목적·예상 비용·ARN·태그를 자동 기재. 생성 명령을 hook 이 감지해 기재를 강제하고, Repo 태그가 빈 기재는 보내기 전에 차단",
       "version": "1.4.0",
       "keywords": ["aws", "cost", "billing", "infra", "onda"]
     }
