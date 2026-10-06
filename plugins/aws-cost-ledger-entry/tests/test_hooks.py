@@ -219,6 +219,12 @@ class LedgerRepoTest(unittest.TestCase):
         self.assertIn("Repo", ledger_repo_problem(two_posts))
         self.assertIsNone(ledger_repo_problem(ledger_post_with_tags("Repo=hub") + " && " + ledger_post_with_tags("Repo=infra")))
 
+    def test_malformed_value_is_named_in_the_reason(self):
+        reason = ledger_repo_problem(ledger_post_with_tags("Repo=tportio/infra,Service=shared"))
+        self.assertIn("tportio/infra", reason)
+        self.assertIn("형식", reason)
+        self.assertIn("없다", ledger_repo_problem(ledger_post_with_tags("Repo=,Service=shared")))
+
     def test_real_repo_names_pass(self):
         for name in ("infra", "gds-app", "global.onda.me", "pension-plus-core", "lambda-function", "misc", "WAVE_Android"):
             self.assertIsNone(ledger_repo_problem(ledger_post_with_tags(f"Repo={name},Service=hub")), name)

@@ -316,8 +316,10 @@ EVASIVE_REPOS = {"unknown", "tbd", "todo", "none", "null", "na", "n/a", "repo"}
 
 
 def _repo_value_problem(value):
-    if not value or not REPO_NAME.match(value):
+    if not value:
         return "tags 에 Repo=<레포 이름> 이 없다"
+    if not REPO_NAME.match(value):
+        return f"Repo={value} 는 레포 이름 형식이 아니다. tportio/ 같은 조직명 없이 레포 이름만 쓴다(영문·숫자·._-)"
     if value.lower() == "unmanaged":
         return "Repo=unmanaged 는 기존 자원 조사용 표시라 새로 만들거나 늘린 자원에는 쓸 수 없다"
     if value.lower() in EVASIVE_REPOS:
