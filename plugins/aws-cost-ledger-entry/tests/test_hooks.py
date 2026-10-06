@@ -9,11 +9,15 @@ from pathlib import Path
 HOOKS = Path(__file__).resolve().parent.parent / "hooks"
 sys.path.insert(0, str(HOOKS))
 
-from ledger_patterns import creation_commands, is_ledger_post  # noqa: E402
+from ledger_patterns import creation_commands, is_ledger_post, ledger_repo_problem  # noqa: E402
 
-LEDGER_POST = (
+LEDGER_POST_NO_TAGS = (
     'curl -s -o /dev/null -w "%{http_code}" -X POST '
     '"https://script.google.com/macros/s/AKfycbxKYs0wD0y8/exec" -d \'{"by":"a"}\''
+)
+LEDGER_POST = (
+    'curl -s -o /dev/null -w "%{http_code}" -X POST '
+    '"https://script.google.com/macros/s/AKfycbxKYs0wD0y8/exec" -d \'{"by":"a","tags":"Repo=hub,Service=hub"}\''
 )
 
 
@@ -187,6 +191,89 @@ class CreationCommandsTest(unittest.TestCase):
         self.assertFalse(is_ledger_post("curl -s https://example.com/exec"))
 
 
+def ledger_post_with_tags(tags):
+    body = json.dumps({"by": "a", "env": "prd", "tags": tags}, ensure_ascii=False)
+    return (
+        'curl -s -o /dev/null -w "%{http_code}" -X POST '
+        '"https://script.google.com/macros/s/AKfycbxKYs0wD0y8/exec" '
+        f"-H \"Content-Type: application/json\" -d \"$(cat <<'JSON'\n{body}\nJSON\n)\""
+    )
+
+
+class LedgerRepoTest(unittest.TestCase):
+    def test_repo_present_passes(self):
+        for tags in ("Repo=hub,Service=hub,Billing=commission,Name=hub-redis-prd",
+                     "Service=shared,Repo=infra", " Repo = pension-plus-core "):
+            self.assertIsNone(ledger_repo_problem(ledger_post_with_tags(tags)), tags)
+
+    def test_missing_or_placeholder_repo_is_a_problem(self):
+        for tags in ("Service=hub,Billing=commission", "Repo=,Service=hub", "",
+                     "<Service=...,Billing=...,Name=...>", "Repo=<레포>,Service=hub", "NotRepo=hub",
+                     "Repo=...,Service=hub", "Repo=-", "Repo=?", "Repo=unknown", "Repo=TBD", "Repo=None",
+                     "Repo=n/a", "Repo=hub app"):
+            self.assertIn("Repo", ledger_repo_problem(ledger_post_with_tags(tags)), tags)
+
+    def test_every_repo_pair_and_tags_field_is_checked(self):
+        self.assertIn("unmanaged", ledger_repo_problem(ledger_post_with_tags("Repo=hub,Repo=unmanaged")))
+        two_posts = ledger_post_with_tags("Repo=hub") + " && " + ledger_post_with_tags("Service=hub")
+        self.assertIn("Repo", ledger_repo_problem(two_posts))
+        self.assertIsNone(ledger_repo_problem(ledger_post_with_tags("Repo=hub") + " && " + ledger_post_with_tags("Repo=infra")))
+
+    def test_malformed_value_is_named_in_the_reason(self):
+        reason = ledger_repo_problem(ledger_post_with_tags("Repo=tportio/infra,Service=shared"))
+        self.assertIn("tportio/infra", reason)
+        self.assertIn("형식", reason)
+        self.assertIn("없다", ledger_repo_problem(ledger_post_with_tags("Repo=,Service=shared")))
+
+    def test_real_repo_names_pass(self):
+        for name in ("infra", "gds-app", "global.onda.me", "pension-plus-core", "lambda-function", "misc", "WAVE_Android"):
+            self.assertIsNone(ledger_repo_problem(ledger_post_with_tags(f"Repo={name},Service=hub")), name)
+
+    def test_unmanaged_is_a_problem(self):
+        self.assertIn("unmanaged", ledger_repo_problem(ledger_post_with_tags("Repo=unmanaged,Service=hub")))
+        self.assertIn("unmanaged", ledger_repo_problem(ledger_post_with_tags("Repo=Unmanaged")))
+
+    def test_body_without_tags_field_is_a_problem(self):
+        self.assertIn("tags", ledger_repo_problem(LEDGER_POST_NO_TAGS))
+        self.assertIn("tags", ledger_repo_problem(LEDGER_POST_NO_TAGS.replace("-d '{\"by\":\"a\"}'", "-d @body.json")))
+
+    def test_skill_template_placeholder_is_a_problem(self):
+        self.assertIn("Repo", ledger_repo_problem(ledger_post_with_tags("<Repo=...,Service=...,Billing=...,Name=...>")))
+
+
+class PreToolUseHookTest(unittest.TestCase):
+    def setUp(self):
+        self.data = tempfile.mkdtemp()
+
+    def run_pre(self, command):
+        return run_hook("pre_tool_use.py", {
+            "hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command},
+        }, self.data)
+
+    def test_ledger_post_without_repo_is_denied(self):
+        out = self.run_pre(ledger_post_with_tags("Service=hub,Billing=commission"))
+        self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "PreToolUse")
+        self.assertEqual(out["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertIn("Repo", out["hookSpecificOutput"]["permissionDecisionReason"])
+
+    def test_ledger_post_with_unmanaged_is_denied(self):
+        out = self.run_pre(ledger_post_with_tags("Repo=unmanaged,Service=hub"))
+        self.assertEqual(out["hookSpecificOutput"]["permissionDecision"], "deny")
+
+    def test_ledger_post_with_repo_passes(self):
+        self.assertIsNone(self.run_pre(ledger_post_with_tags("Repo=hub,Service=hub,Billing=commission")))
+
+    def test_other_commands_pass(self):
+        for command in ("aws ec2 run-instances --instance-type m5.large", "curl -s https://example.com/exec",
+                        "echo script.google.com/macros/s/AKfy/exec"):
+            self.assertIsNone(self.run_pre(command), command)
+
+    def test_malformed_stdin_passes(self):
+        self.assertIsNone(run_hook("pre_tool_use.py", None, self.data, raw_stdin="{not json"))
+        self.assertIsNone(run_hook("pre_tool_use.py", None, self.data, raw_stdin="[]"))
+        self.assertIsNone(run_hook("pre_tool_use.py", {"tool_input": "x"}, self.data))
+
+
 class PostToolUseHookTest(unittest.TestCase):
     def setUp(self):
         self.data = tempfile.mkdtemp()
@@ -233,6 +320,15 @@ class StopHookTest(unittest.TestCase):
     def test_create_then_record_allows(self):
         write_transcript(self.transcript, ["aws rds create-db-instance --db-instance-identifier x", LEDGER_POST])
         self.assertIsNone(self.stop())
+
+    def test_post_without_repo_does_not_count_as_record(self):
+        write_transcript(self.transcript, ["aws rds create-db-instance --db-instance-identifier x", LEDGER_POST_NO_TAGS])
+        self.assertEqual(self.stop()["decision"], "block")
+
+    def test_post_with_unmanaged_repo_does_not_count_as_record(self):
+        write_transcript(self.transcript, ["aws rds create-db-instance --db-instance-identifier x",
+                                           ledger_post_with_tags("Repo=unmanaged,Service=hub")])
+        self.assertEqual(self.stop()["decision"], "block")
 
     def test_create_after_record_blocks(self):
         write_transcript(self.transcript, [

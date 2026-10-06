@@ -5,7 +5,7 @@ import sys
 import time
 from pathlib import Path
 
-from ledger_patterns import creation_commands, is_ledger_post
+from ledger_patterns import creation_commands, is_ledger_post, ledger_repo_problem
 
 STATE_RETENTION_SECONDS = 30 * 24 * 3600
 
@@ -49,7 +49,9 @@ def unrecorded_creations(transcript_path):
                 if not isinstance(command, str):
                     continue
                 if is_ledger_post(command):
-                    calls = []
+                    # A post that the PreToolUse hook denies for a missing Repo never left; it records nothing.
+                    if not ledger_repo_problem(command):
+                        calls = []
                     continue
                 tool_use_id = block.get("id")
                 for segment in creation_commands(command):
@@ -117,7 +119,7 @@ def main():
         "aws-cost-ledger-entry 스킬로 지금 기재한다. 자원이 실제로 생기지 않았으면 "
         "그 이유를 한 줄로 사용자에게 알리고 끝낸다."
     )
-    json.dump({"decision": "block", "reason": reason}, sys.stdout, ensure_ascii=False)
+    json.dump({"decision": "block", "reason": reason}, sys.stdout, ensure_ascii=True)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ def main():
     json.dump(
         {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": context}},
         sys.stdout,
-        ensure_ascii=False,
+        ensure_ascii=True,
     )
 
 
