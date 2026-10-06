@@ -305,3 +305,24 @@ def creation_commands(command):
 
 def is_ledger_post(command):
     return "curl" in (command or "") and bool(LEDGER_WEBHOOK.search(command))
+
+
+TAGS_FIELD = re.compile(r'"tags"\s*:\s*"([^"]*)"')
+REPO_PAIR = re.compile(r"(?:^|,)\s*Repo\s*=\s*([^,]*)")
+
+
+def ledger_repo_problem(command):
+    """Why a ledger POST may not go out for lack of a Repo tag, or None when it is fine.
+
+    The ledger is append-only, so a row without Repo has to be stopped before it is sent.
+    """
+    field = TAGS_FIELD.search(command or "")
+    if not field:
+        return "보내는 내용에서 \"tags\" 필드를 찾지 못했다. 스킬의 기재 명령처럼 본문을 명령 안에 그대로 넣어 보낸다"
+    pair = REPO_PAIR.search(field.group(1))
+    value = pair.group(1).strip() if pair else ""
+    if not value or value.startswith("<"):
+        return "tags 에 Repo=<레포 이름> 이 없다"
+    if value.lower() == "unmanaged":
+        return "Repo=unmanaged 는 기존 자원 조사용 표시라 새로 만들거나 늘린 자원에는 쓸 수 없다"
+    return None

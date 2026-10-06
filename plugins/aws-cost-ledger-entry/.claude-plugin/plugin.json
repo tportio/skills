@@ -1,5 +1,5 @@
 {
   "name": "aws-cost-ledger-entry",
   "description": "신규 AWS 자원을 만들거나 늘릴 때 비용 대장의 '인프라 변경 이력' 탭에 대상·목적·예상 비용·ARN·태그를 한 행으로 기재. 비용이 왜 늘었는지 나중에 답할 근거를 남긴다. Claude 가 실행한 생성·확장 명령은 hook 이 감지해 기재를 강제한다.",
-  "version": "1.3.0"
+  "version": "1.4.0"
 }
